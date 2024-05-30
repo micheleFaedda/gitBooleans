@@ -12,29 +12,49 @@
 
 
 using namespace cinolib;
+using namespace std;
 
 int main(int argc, char **argv)
 {
-    std::string file_path = "../data/armadillo_T0.obj";
-    GLcanvas gui;
-    DrawableTrimesh<> m(file_path.c_str());
-    SurfaceMeshControls<DrawableTrimesh<>> controls(&m, &gui);
 
+    string file_path = "../data/armadillo_T0.obj";
+    string file_path2 = "../data/armadillo_T1.obj";
+
+    vector<string> files = {file_path, file_path2};
+
+
+
+
+    BoolOp op = SUBTRACTION;
+    string file_out = "../results/difference.obj";
+
+    vector<double> in_coords, bool_coords;
+    vector<uint> in_tris, bool_tris;
+    vector<uint> in_labels;
+    vector<bitset<NBIT>> bool_labels;
+
+
+    loadMultipleFiles(files, in_coords, in_tris, in_labels);
+    booleanPipeline(in_coords, in_tris, in_labels, op, bool_coords, bool_tris, bool_labels);
+
+
+    booleanPipeline(in_coords, in_tris, in_labels, op, bool_coords, bool_tris, bool_labels);
+
+    cinolib::write_OBJ(file_out.c_str(), bool_coords, bool_tris, {});
+
+
+    GLcanvas gui;
+    DrawableTrimesh<>new_mesh;
+
+    DrawableTrimesh<> m(file_out.c_str());
+    SurfaceMeshControls<DrawableTrimesh<>> controls(&m, &gui);
 
     gui.push(&m);
     gui.push(&controls);
 
-    /*gui.callback_app_controls = [&]()
-    {
-        if(ImGui::Button("show me vert")) {
-
-        }
-    }*/
     m.updateGL();
-    gui.push(&m);
-
-
-
 
     return gui.launch();
+
+    return 0;
 }

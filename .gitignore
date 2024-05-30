@@ -5,6 +5,7 @@
 build/
 cmake-build-debug/
 cmake-build-release/
+results/
 *.a
 
 *.pro.user
