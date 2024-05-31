@@ -35,10 +35,32 @@ int main(int argc, char **argv)
 
 
     loadMultipleFiles(files, in_coords, in_tris, in_labels);
-    booleanPipeline(in_coords, in_tris, in_labels, op, bool_coords, bool_tris, bool_labels);
 
 
-    booleanPipeline(in_coords, in_tris, in_labels, op, bool_coords, bool_tris, bool_labels);
+    //booleanPipeline(in_coords, in_tris, in_labels, op, bool_coords, bool_tris, bool_labels);
+
+
+    initFPU();
+
+    point_arena arena;
+    std::vector<genericPoint*> arr_verts; // <- it contains the original expl verts + the new_impl verts
+    std::vector<uint> arr_in_tris, arr_out_tris;
+    std::vector<std::bitset<NBIT>> arr_in_labels;
+    std::vector<DuplTriInfo> dupl_triangles;
+    Labels labels;
+    std::vector<phmap::flat_hash_set<uint>> patches;
+    cinolib::Octree octree; // built with arr_in_tris and arr_in_labels
+
+    customArrangementPipeline(in_coords, in_tris, in_labels, arr_in_tris, arr_in_labels, arena, arr_verts,
+                              arr_out_tris, labels, octree, dupl_triangles);
+
+
+
+
+    customBooleanPipeline(arr_verts, arr_in_tris, arr_out_tris, arr_in_labels, dupl_triangles, labels,
+                          patches, octree, op, bool_coords, bool_tris, bool_labels);
+
+
 
     cinolib::write_OBJ(file_out.c_str(), bool_coords, bool_tris, {});
 
