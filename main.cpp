@@ -18,7 +18,7 @@ int main(int argc, char **argv)
 {
     bool flag_arrangement_debug = false;
     string file_path = "../data/cube.obj";
-    string file_path2 = "../data/cube1-2.obj";
+    string file_path2 = "../data/cube3.obj";
 
     vector<string> files = {file_path, file_path2};
 
@@ -51,9 +51,9 @@ int main(int argc, char **argv)
 
     //(arr_verts, arr_in_tris, arr_out_tris, arr_in_labels, dupl_triangles, labels, patches, octree, op, bool_coords, bool_tris, bool_labels);
 
-    FastTrimesh tm(arr_verts, arr_out_tris, false);
+    FastTrimesh tm(arr_verts, arr_out_tris, true);
 
-    computeAllPatches(tm, labels, patches, false);
+    computeAllPatches(tm, labels, patches, true);
 
     // the informations about duplicated triangles (removed in arrangements) are restored in the original structures
     addDuplicateTrisInfoInStructures(dupl_triangles, arr_in_tris, arr_in_labels, octree);
@@ -97,42 +97,29 @@ int main(int argc, char **argv)
         std::cout << "Patch 0: " << t << " inside: "<< labels.inside[t] << " surface: " << labels.surface[t] << std::endl;
     }*/
 
-
     /******************************************************************************************************/
 
     //computeFinalExplicitResult(tm, labels, num_tris_in_final_solution, bool_coords, bool_tris, bool_labels, true);c
 
     uint num_vertices = 0;
+    std::vector<int>  vertex_index(tm.numVerts(), -1);
     bool_tris.resize((num_tris_mantained + num_tris_added + num_tris_removed) * 3);
     bool_labels.resize(num_tris_mantained + num_tris_added + num_tris_removed);
-    std::vector<int>  vertex_index(tm.numVerts(), -1);
 
 
     uint tri_offset = 0;
-    uint tri_offset_mantained = 0;
-    uint tri_offset_removed = num_tris_mantained ;
-    uint tri_offset_added = num_tris_mantained + num_tris_removed ;
-    if(flag_arrangement_debug) {
-        uint num_tris_in_final_solution = tm.numTris();
-
-        computeFinalExplicitResult(tm, labels, num_tris_in_final_solution, bool_coords, bool_tris, bool_labels, true);
-        cinolib::write_OBJ("arrangement_cube_1-2.obj", bool_coords, bool_tris, {});
-    }
-
+    uint tri_offset_mantained = -1 , tri_offset_removed = num_tris_mantained-1 , tri_offset_added = num_tris_mantained + num_tris_removed - 1 ;
 
     for(uint t_id = 0; t_id < tm.numTris(); t_id++)
     {
         if(tm.triInfo(t_id) == 0) continue; // triangle not included in final version
 
         if (tm.triInfo(t_id) == 1){
-            tri_offset = tri_offset_mantained;
+            tri_offset = ++tri_offset_mantained;
         }else if (tm.triInfo(t_id) == 2){
-            tri_offset = tri_offset_removed;
-        }else if (tm.triInfo(t_id) == 3){
-            tri_offset = tri_offset_added;
-        }else{
-            std::cerr << "triangle info not valid" << std::endl;
-            std::exit(EXIT_FAILURE);
+            tri_offset = ++tri_offset_removed;
+        }else if (tm.triInfo(t_id) == 3) {
+            tri_offset = ++tri_offset_added;
         }
 
         const uint *triangle = tm.tri(t_id);
@@ -146,14 +133,6 @@ int main(int argc, char **argv)
             bool_tris[3 * tri_offset + i] = vertex_index[old_vertex];
         }
         bool_labels[tri_offset] = labels.surface[t_id];
-
-        if (tm.triInfo(t_id) == 1){
-            tri_offset_mantained++;
-        }else if (tm.triInfo(t_id) == 2){
-            tri_offset_removed++;
-        }else if (tm.triInfo(t_id) == 3){
-            tri_offset_added++;
-        }
     }
 
     // loop over vertices
@@ -170,7 +149,6 @@ int main(int argc, char **argv)
     /**********************************************************************************************/
     cinolib::write_OBJ(file_out.c_str(), bool_coords, bool_tris, {});
 
-
     GLcanvas gui;
     DrawableTrimesh<>new_mesh;
 
@@ -180,24 +158,17 @@ int main(int argc, char **argv)
     gui.push(&m);
     gui.push(&controls);
 
-    //print the number of triangles mantained, removed and added
-    cout << "Number of triangles mantained: " << num_tris_mantained << endl;
-    cout << "Number of triangles removed: " << num_tris_removed << endl;
-    cout << "Number of triangles added: " << num_tris_added << endl;
-
-
     for(uint i = 0; i < m.num_polys(); i++) {
 
-
         if (num_tris_mantained != 0 && i < num_tris_mantained) {
-
-            std::cout << "Poly ID: " << i << std::endl;
             m.poly_data(i).color = Color::GRAY(2.0);
+
         } else if (num_tris_removed != 0 && i < (num_tris_mantained + num_tris_removed)) {
             m.poly_data(i).color = Color::RED();
+
         }else if (num_tris_added != 0){
             m.poly_data(i).color = Color::GREEN();
-    }
+        }
     }
 
     m.updateGL();
