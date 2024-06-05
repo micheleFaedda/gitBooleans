@@ -57,7 +57,7 @@ inline void customBooleanPipeline(std::vector<genericPoint*>& arr_verts, std::ve
     cinolib::vec3d max_coords(octree.root->bbox.max.x() +0.5, octree.root->bbox.max.y() +0.5, octree.root->bbox.max.z() +0.5);
     computeInsideOut(tm, patches, octree, arr_verts, arr_in_tris, arr_in_labels, max_coords, labels);
 
-    // booleand operations
+    // boolean operations
     uint num_tris_in_final_solution;
     if(op == INTERSECTION)
         num_tris_in_final_solution = boolIntersection(tm, labels);

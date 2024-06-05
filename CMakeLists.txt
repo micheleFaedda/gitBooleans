@@ -14,7 +14,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # set the project name
-project(mesh_booleans)
+project(gitBooleans)
 
 set(TBB_TEST OFF CACHE BOOL " " FORCE)
 set(TBB_EXAMPLES OFF CACHE BOOL " " FORCE)
@@ -43,6 +43,24 @@ target_link_libraries(${PROJECT_NAME} tbb)
 target_compile_definitions(${PROJECT_NAME} PUBLIC TBB_PARALLEL=1)
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/arrangements/external/abseil-cpp/)
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/arrangements/external/oneTBB/)
+
+
+# add the executable
+add_executable(${PROJECT_NAME}_show_diff main_show_diff.cpp)
+
+target_include_directories(${PROJECT_NAME}_show_diff PUBLIC
+        ./
+        code/
+        mesh_booleans/
+        arrangements/code/
+        arrangements/external/Indirect_Predicates/include/
+)
+
+target_link_libraries(${PROJECT_NAME}_show_diff cinolib)
+target_link_libraries(${PROJECT_NAME}_show_diff tbb)
+target_compile_definitions(${PROJECT_NAME}_show_diff PUBLIC TBB_PARALLEL=1)
+target_include_directories(${PROJECT_NAME}_show_diff PUBLIC ${PROJECT_SOURCE_DIR}/arrangements/external/abseil-cpp/)
+target_include_directories(${PROJECT_NAME}_show_diff PUBLIC ${PROJECT_SOURCE_DIR}/arrangements/external/oneTBB/)
 
 # Compiler-specific options
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
