@@ -13,17 +13,32 @@
 
 using namespace cinolib;
 using namespace std;
+bool debug = true;
+bool flag_arrangement_debug = false;
 
 int main(int argc, char **argv)
 {
-    bool flag_arrangement_debug = false;
-    string file_path = "../data/cube.obj";
-    string file_path2 = "../data/cube3.obj";
+    string file_path;
+    string file_path2;
+
+    if(!debug && argc < 3) {
+        std::cout << "syntax error!" << std::endl;
+        std::cout << "./gitBooleans input1.obj input2.obj" << std::endl;
+        return -1;
+
+    }else if(!debug){
+        file_path = argv[1];
+        file_path2 = argv[2];
+    }else{
+        file_path = "../data/cube.obj";
+        file_path2 = "../data/cube1_3.obj";
+    }
+
 
     vector<string> files = {file_path, file_path2};
 
     BoolOp op = UNION;
-    string file_out = "../results/output.obj";
+    string file_out = "diff.obj";
 
     vector<double> in_coords, bool_coords;
     vector<uint> in_tris, bool_tris;
@@ -49,7 +64,7 @@ int main(int argc, char **argv)
     customArrangementPipeline(in_coords, in_tris, in_labels, arr_in_tris, arr_in_labels, arena, arr_verts,
                               arr_out_tris, labels, octree, dupl_triangles);
 
-    //(arr_verts, arr_in_tris, arr_out_tris, arr_in_labels, dupl_triangles, labels, patches, octree, op, bool_coords, bool_tris, bool_labels);
+    //customBooleanPipeline(arr_verts, arr_in_tris, arr_out_tris, arr_in_labels, dupl_triangles, labels, patches, octree, op, bool_coords, bool_tris, bool_labels);
 
     FastTrimesh tm(arr_verts, arr_out_tris, true);
 
@@ -63,39 +78,40 @@ int main(int argc, char **argv)
     computeInsideOut(tm, patches, octree, arr_verts, arr_in_tris, arr_in_labels, max_coords, labels);
 
     /******************************************************************************************************/
-    //GIT CODE
-    uint num_tris_added = 0;
-    uint num_tris_removed = 0;
-    uint num_tris_mantained = 0;
-
+    //DIFF CODE
+    std::vector<std::vector<std::vector<uint>>> parts_to_color;
+    std::vector<int> num_tri_to_color_per_part;
+    uint num_parts = 3;
+    parts_to_color.resize(num_parts);
+    num_tri_to_color_per_part.resize(num_parts);
 
     tm.resetTrianglesInfo();
+
+    uint num_tris_in_final_result = 0;
 
     for(uint t_id = 0 ; t_id < tm.numTris(); ++t_id){
         if(labels.surface[t_id][1]){ //if the triangle belong to B
             if(labels.surface[t_id].count() == 2 && labels.inside[t_id].count() == 0){
                 //TODO: GRAY PARTS
                 tm.setTriInfo(t_id, 1);
-                num_tris_mantained++;
+                num_tris_in_final_result++;
+                num_tri_to_color_per_part[0]++;
 
             }else if(labels.inside[t_id][0]){ //parts of B inside A
                 //TODO: RED PARTS
-                tm.setTriInfo(t_id, 2);
-                num_tris_removed++;
+                tm.setTriInfo(t_id, 1);
+                num_tris_in_final_result++;
+                num_tri_to_color_per_part[1]++;
 
             }else if(!labels.inside[t_id][0]){
                 //TODO: GREEN PARTS
-                tm.setTriInfo(t_id, 3);
-                num_tris_added++;
-
+                tm.setTriInfo(t_id, 1);
+                num_tris_in_final_result++;
+                num_tri_to_color_per_part[2]++;
             }
         }
     }
 
-    //DEBUG
-    /*for(auto t  : patches[2]){
-        std::cout << "Patch 0: " << t << " inside: "<< labels.inside[t] << " surface: " << labels.surface[t] << std::endl;
-    }*/
 
     /******************************************************************************************************/
 
@@ -103,24 +119,25 @@ int main(int argc, char **argv)
 
     uint num_vertices = 0;
     std::vector<int>  vertex_index(tm.numVerts(), -1);
-    bool_tris.resize((num_tris_mantained + num_tris_added + num_tris_removed) * 3);
-    bool_labels.resize(num_tris_mantained + num_tris_added + num_tris_removed);
+    bool_tris.resize(num_tris_in_final_result * 3);
+    bool_labels.resize(num_tris_in_final_result);
 
+    std::vector <uint> vert_to_color;
+    vert_to_color.resize(3);
+
+    //reserve space for the parts to color and the vertices of each part
+    for(uint i = 0; i < parts_to_color.size(); ++i){
+        parts_to_color[i].reserve(num_tri_to_color_per_part[i]);
+
+        for(uint j = 0; j < parts_to_color[i].size(); ++j)
+            parts_to_color[i][j].reserve(3);
+    }
 
     uint tri_offset = 0;
-    uint tri_offset_mantained = -1 , tri_offset_removed = num_tris_mantained-1 , tri_offset_added = num_tris_mantained + num_tris_removed - 1 ;
 
     for(uint t_id = 0; t_id < tm.numTris(); t_id++)
     {
         if(tm.triInfo(t_id) == 0) continue; // triangle not included in final version
-
-        if (tm.triInfo(t_id) == 1){
-            tri_offset = ++tri_offset_mantained;
-        }else if (tm.triInfo(t_id) == 2){
-            tri_offset = ++tri_offset_removed;
-        }else if (tm.triInfo(t_id) == 3) {
-            tri_offset = ++tri_offset_added;
-        }
 
         const uint *triangle = tm.tri(t_id);
         for(uint i = 0; i < 3; i++)
@@ -131,8 +148,25 @@ int main(int argc, char **argv)
             }
 
             bool_tris[3 * tri_offset + i] = vertex_index[old_vertex];
+            vert_to_color[i] = vertex_index[old_vertex];
+        }
+
+        if(labels.surface[t_id][1]){ //if the triangle belong to B
+            if(labels.surface[t_id].count() == 2 && labels.inside[t_id].count() == 0){
+                //TODO: GRAY PARTS
+                parts_to_color[0].push_back(vert_to_color);
+
+            }else if(labels.inside[t_id][0]){ //parts of B inside A
+                //TODO: RED PARTS
+                parts_to_color[1].push_back(vert_to_color);
+
+            }else if(!labels.inside[t_id][0]){
+                //TODO: GREEN PARTS
+                parts_to_color[2].push_back(vert_to_color);
+            }
         }
         bool_labels[tri_offset] = labels.surface[t_id];
+        tri_offset++;
     }
 
     // loop over vertices
@@ -158,21 +192,22 @@ int main(int argc, char **argv)
     gui.push(&m);
     gui.push(&controls);
 
-    for(uint i = 0; i < m.num_polys(); i++) {
+    for(uint i = 0; i < parts_to_color.size(); ++i) {
+        for (uint j = 0; j < parts_to_color[i].size(); ++j) {
 
-        if (num_tris_mantained != 0 && i < num_tris_mantained) {
-            m.poly_data(i).color = Color::GRAY(2.0);
+            int t_id =  m.poly_id({parts_to_color[i][j][0], parts_to_color[i][j][1], parts_to_color[i][j][2]});
+            if (t_id == -1) std::cerr << "Error: triangle not found" << std::endl;
 
-        } else if (num_tris_removed != 0 && i < (num_tris_mantained + num_tris_removed)) {
-            m.poly_data(i).color = Color::RED();
-
-        }else if (num_tris_added != 0){
-            m.poly_data(i).color = Color::GREEN();
+            if(i == 0){
+                m.poly_data(t_id).color = Color::GRAY(2.0);
+            }else if(i == 1){
+                m.poly_data(t_id).color = Color::RED();
+            }  else if(i == 2){
+                m.poly_data(t_id).color = Color::GREEN();
+            }
         }
     }
 
     m.updateGL();
     return gui.launch();
-
-
 }
