@@ -47,9 +47,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/arrangem
 
 
 # add the executable
-add_executable(${PROJECT_NAME}_show_diff main_show_diff.cpp)
+add_executable(${PROJECT_NAME}_tests main_tests.cpp)
 
-target_include_directories(${PROJECT_NAME}_show_diff PUBLIC
+target_include_directories(${PROJECT_NAME}_tests PUBLIC
         ./
         code/
         mesh_booleans/
@@ -57,11 +57,11 @@ target_include_directories(${PROJECT_NAME}_show_diff PUBLIC
         arrangements/external/Indirect_Predicates/include/
 )
 
-target_link_libraries(${PROJECT_NAME}_show_diff cinolib)
-target_link_libraries(${PROJECT_NAME}_show_diff tbb)
-target_compile_definitions(${PROJECT_NAME}_show_diff PUBLIC TBB_PARALLEL=1)
-target_include_directories(${PROJECT_NAME}_show_diff PUBLIC ${PROJECT_SOURCE_DIR}/arrangements/external/abseil-cpp/)
-target_include_directories(${PROJECT_NAME}_show_diff PUBLIC ${PROJECT_SOURCE_DIR}/arrangements/external/oneTBB/)
+target_link_libraries(${PROJECT_NAME}_tests cinolib)
+target_link_libraries(${PROJECT_NAME}_tests tbb)
+target_compile_definitions(${PROJECT_NAME}_tests PUBLIC TBB_PARALLEL=1)
+target_include_directories(${PROJECT_NAME}_tests PUBLIC ${PROJECT_SOURCE_DIR}/arrangements/external/abseil-cpp/)
+target_include_directories(${PROJECT_NAME}_tests PUBLIC ${PROJECT_SOURCE_DIR}/arrangements/external/oneTBB/)
 
 # Compiler-specific options
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")

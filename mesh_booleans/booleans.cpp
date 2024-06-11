@@ -564,7 +564,7 @@ inline bool intersects_box(const cinolib::Octree& tree, const cinolib::AABB & b,
         lifo.pop();
         assert(node->bbox.intersects_box(b));
 
-        if(node->is_inner)
+        if(node->is_inner())
         {            
             for(int i = 0; i < 8; ++i)
             {
