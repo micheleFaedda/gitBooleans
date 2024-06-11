@@ -361,7 +361,7 @@ class implicitPoint3D_LPI : public genericPoint{
 
 public:
 	implicitPoint3D_LPI(const explicitPoint3D& _p, const explicitPoint3D& _q,
-		const explicitPoint3D& _r, const explicitPoint3D& _s, const explicitPoint3D& _t);
+                        const explicitPoint3D& _r, const explicitPoint3D& _s, const explicitPoint3D& _t);
 
 	const explicitPoint3D& P() const { return ip; }
 	const explicitPoint3D& Q() const { return iq; }

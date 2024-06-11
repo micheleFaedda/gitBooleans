@@ -578,7 +578,7 @@ inline bool implicitPoint3D_LPI::getIntervalLambda(interval_number& lx, interval
 }
 
 inline implicitPoint3D_LPI::implicitPoint3D_LPI(const explicitPoint3D& _p, const explicitPoint3D& _q,
-	const explicitPoint3D& _r, const explicitPoint3D& _s, const explicitPoint3D& _t)
+                                                const explicitPoint3D& _r, const explicitPoint3D& _s, const explicitPoint3D& _t)
 	: genericPoint(Point_Type::LPI), ip(_p), iq(_q), ir(_r), is(_s), it(_t)
 {
 	lambda3d_LPI_interval(P().X(), P().Y(), P().Z(), Q().X(), Q().Y(), Q().Z(), R().X(), R().Y(), R().Z(), S().X(), S().Y(), S().Z(), T().X(), T().Y(), T().Z(), dfilter_lambda_x, dfilter_lambda_y, dfilter_lambda_z, dfilter_denominator);
