@@ -32,8 +32,6 @@ int main(int argc, char **argv) {
     const explicitPoint3D *is = new explicitPoint3D(4.0,4.0,0.0);
     const explicitPoint3D *it = new explicitPoint3D(0.0,4.0,0.0);
 
-    const explicitPoint3D *PY = new explicitPoint3D(2.0, 2.0, 1);
-
 
     const explicitPoint3D *iq_P0 = new explicitPoint3D(0.5,0.5,-1.0);
     const explicitPoint3D *ip_P0 = new explicitPoint3D(0.5,0.5,1.0);
@@ -52,17 +50,17 @@ int main(int argc, char **argv) {
     genericPoint *P2 = new implicitPoint3D_LPI(*iq_P2, *ip_P2, *ir, *is, *it);
     genericPoint *P3 = new implicitPoint3D_LPI(*iq_P3, *ip_P3, *ir, *is, *it);
 
-
+    /************************* ORIENT3D IMPLICIT **********************/
     int T0_orient= genericPoint::orient3D(*P0, *ir, *it, *is);
     int T1_orient = genericPoint::orient3D(*P1, *ir, *it, *is );
     int T2_orient = genericPoint::orient3D(*P2, *ir, *it, *is );
     int T3_orient = genericPoint::orient3D(*P3, *ir, *it, *is );
 
 
-    std::cout << "T0_orient: " << T0_orient << std::endl;
-    std::cout << "T1_orient: " << T1_orient << std::endl;
-    std::cout << "T2_orient: " << T2_orient << std::endl;
-    std::cout << "T3_orient: " << T3_orient << std::endl;
+    std::cout << "Result P0 Implicit: " << T0_orient << std::endl;
+    std::cout << "Result P1 Implicit: " << T1_orient << std::endl;
+    std::cout << "Result P2 Implicit: " << T2_orient << std::endl;
+    std::cout << "Result P3 Implicit: " << T3_orient << std::endl;
 
     /*RAZIONALI*/
     bigrational x_P0, y_P0, z_P0;
@@ -77,48 +75,34 @@ int main(int argc, char **argv) {
     bigrational x_P3, y_P3, z_P3;
     P3->getExactXYZCoordinates(x_P3,y_P3,z_P3);
 
-/***********************************************************************************************************************/
-    // The sequence of numbers
-    std::vector<uint> num;
-    std::vector<uint> den;
+    bigrational x_ir, y_ir, z_ir;
+    ir->getExactXYZCoordinates(x_ir,y_ir,z_ir);
 
-    for(int i = 0; i < x_P0.get_num().size(); i++){
-        num.push_back(x_P0.get_num()[i]);
-    }
-    for(int i = 0; i < x_P0.get_den().size(); i++){
-        den.push_back(x_P0.get_den()[i]);
-    }
-    // Create an empty string to store the concatenated numbers
-    std::string concatenated;
+    bigrational x_is, y_is, z_is;
+    is->getExactXYZCoordinates(x_is,y_is,z_is);
 
-    // Loop through the numbers and concatenate them into a string
-    for (int number : num) {
-        concatenated += std::to_string(number);
-    }
+    bigrational x_it, y_it, z_it;
+    it->getExactXYZCoordinates(x_it,y_it,z_it);
 
-    // Convert the concatenated string to a long integer
-    long long result = std::stoll(concatenated);
+    /************************* ORIENT3D RATIONALS **********************/
+    std::vector<bigrational> P0_rational = {x_P0, y_P0, z_P0};
+    std::vector<bigrational> P1_rational = {x_P1, y_P1, z_P1};
+    std::vector<bigrational> P2_rational = {x_P2, y_P2, z_P2};
+    std::vector<bigrational> P3_rational = {x_P3, y_P3, z_P3};
 
-    // Output the result
-    std::cout << "The concatenated number is: " << result << std::endl;
+    std::vector<bigrational> ir_rational = {x_ir, y_ir, z_ir};
+    std::vector<bigrational> is_rational = {x_is, y_is, z_is};
+    std::vector<bigrational> it_rational = {x_it, y_it, z_it};
 
+    auto result_rational_P0 = orient3d(&P0_rational[0], &ir_rational[0], &it_rational[0], &is_rational[0]);
+    auto result_rational_P1 = orient3d(&P1_rational[0], &ir_rational[0], &it_rational[0], &is_rational[0]);
+    auto result_rational_P2 = orient3d(&P2_rational[0], &ir_rational[0], &it_rational[0], &is_rational[0]);
+    auto result_rational_P3 = orient3d(&P3_rational[0], &ir_rational[0], &it_rational[0], &is_rational[0]);
 
-
-    std::vector<CGAL_Q> rationals;
-    // Define the kernel
-    typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
-
-    // Define the types for rational coordinates
-    typedef CGAL::Quotient<CGAL::MP_Float> Rational;
-
-    // Define the 3D point type using rational coordinates
-    typedef CGAL::Point_3<K, Rational> Point_3;
-
-
-    // Create rational numbers using CGAL::Gmpq
-    //CGAL::Gmpq x() // represents 3/4
-
-
+    std::cout << "Result P0 Rationals: " << result_rational_P0 << std::endl;
+    std::cout << "Result P1 Rationals: " << result_rational_P1 << std::endl;
+    std::cout << "Result P2 Rationals: " << result_rational_P2 << std::endl;
+    std::cout << "Result P3 Rationals: " << result_rational_P3 << std::endl;
 
 
     return 0;
