@@ -47,7 +47,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/arrangem
 
 
 # add the executable
-add_executable(${PROJECT_NAME}_tests main_tests.cpp)
+add_executable(${PROJECT_NAME}_tests main_tests.cpp
+        code/intersect_custom.h code/intersect_custom.cpp)
 
 target_include_directories(${PROJECT_NAME}_tests PUBLIC
         ./
