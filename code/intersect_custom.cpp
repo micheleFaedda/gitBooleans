@@ -277,7 +277,8 @@ SimplexIntersection segment_triangle_intersect_3d(const bigrational * s0,
                                                          const bigrational * t1,
                                                          const bigrational * t2)
 {
-    assert(!segment_is_degenerate_3d(s0, s1) && !triangle_is_degenerate_3d(t0, t1, t2));
+    assert(!segment_is_degenerate_3d(s0, s1));
+    assert(!triangle_is_degenerate_3d(t0, t1, t2));
 
     if((vec_equals_3d(s0, t0) || vec_equals_3d(s0, t1) || vec_equals_3d(s0, t2)) &&
        (vec_equals_3d(s1, t0) || vec_equals_3d(s1, t1) || vec_equals_3d(s1, t2)))
@@ -347,5 +348,67 @@ SimplexIntersection segment_triangle_intersect_3d(const bigrational * s0,
 
     return INTERSECT;
 }
+
+void cross(const bigrational* va,
+           const bigrational* vb,
+           bigrational* res)
+{
+    res[0] = va[1] * vb[2] - va[2] * vb[1];
+    res[1] = va[2] * vb[0] - va[0] * vb[2];
+    res[2] = va[0] * vb[1] - va[1] * vb[0];
+}
+
+
+void triangle_normal(const bigrational* pa,
+                     const bigrational* pb,
+                     const bigrational* pc,
+                     bigrational* n) // n is the normal of triangle abc
+{
+    bigrational v0[3] = { pb[0]-pa[0], pb[1]-pa[1], pb[2]-pa[2] };
+    bigrational v1[3] = { pc[0]-pa[0], pc[1]-pa[1], pc[2]-pa[2] };
+    cross(v0,v1,n);
+}
+
+bigrational dot(const bigrational * pa,
+                             const bigrational * pb)
+{
+    return pa[0] * pb[0] +
+           pa[1] * pb[1] +
+           pa[2] * pb[2];
+}
+
+
+void plane_line_intersection(const bigrational* p0,
+                             const bigrational* p1,
+                             const bigrational* p2,
+                             const bigrational* l0,
+                             const bigrational* l1,
+                             bigrational* res)
+{
+    // https://en.wikipedia.org/wiki/Line–plane_intersection
+
+    bigrational n[3];
+    triangle_normal(p0,p1,p2,n);
+
+    bigrational l[3];
+    l[0] = l1[0] - l0[0];
+    l[1] = l1[1] - l0[1];
+    l[2] = l1[2] - l0[2];
+
+    bigrational pl[3];
+    pl[0] = p0[0] - l0[0];
+    pl[1] = p0[1] - l0[1];
+    pl[2] = p0[2] - l0[2];
+
+    bigrational d = dot(pl,n)/dot(l,n);
+
+    res[0] = l0[0] + l[0]* d;
+    res[1] = l0[1] + l[1]* d;
+    res[2] = l0[2] + l[2]* d;
+
+    assert(cinolib::orient3d(p0,p1,p2,res)==bigrational(0));
+}
+
+
 
 

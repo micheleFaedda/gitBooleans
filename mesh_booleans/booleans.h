@@ -44,6 +44,7 @@
 #include "intersection_classification.h"
 #include "triangulation.h"
 #include <cinolib/octree.h>
+#include "intersect_custom.h"
 
 #include <bitset>
 
@@ -52,6 +53,14 @@ struct Labels
     std::vector< std::bitset<NBIT> > surface;
     std::vector< std::bitset<NBIT> > inside;
     uint num;
+};
+
+struct RationalRay{
+    std::array<bigrational,3> v0;
+    std::array<bigrational,3> v1;
+    char dir = 'X';
+    int tv[3] = {-1, -1, -1};
+
 };
 
 struct Ray
@@ -129,6 +138,7 @@ inline void computeSinglePatch(FastTrimesh &tm, uint seed_t, const Labels &label
 inline void computeSinglePatch(FastTrimesh &tm, uint seed_t, const Labels &labels, phmap::flat_hash_set<uint> &patch, const std::vector<std::array<uint, 3>>& adjT2E);
 
 inline void findRayEndpoints(const FastTrimesh &tm, const phmap::flat_hash_set<uint> &patch, const cinolib::vec3d &max_coords, Ray &ray);
+inline void findRayEndpointsCustom(const FastTrimesh &tm, const phmap::flat_hash_set<uint> &patch, const cinolib::vec3d &max_coords, Ray &ray, RationalRay &rational_ray, bool &fullImplicit);
 
 inline bool intersects_box(const cinolib::Octree& tree, const cinolib::AABB & b, phmap::flat_hash_set<uint> & ids);
 
@@ -161,14 +171,39 @@ inline Ray perturbYRay(const Ray &ray, uint offset);
 
 inline Ray perturbZRay(const Ray &ray, uint offset);
 
+inline Ray perturbXRay(const RationalRay &ray, uint offset);
+inline Ray perturbYRay(const RationalRay &ray, uint offset);
+inline Ray perturbZRay(const RationalRay &ray, uint offset);
+
 inline int perturbRayAndFindIntersTri(const Ray &ray, const std::vector<genericPoint*> &in_verts, const std::vector<uint> &in_tris,
                                        const std::vector<uint> &tris_to_test);
 
+
+inline int perturbRayAndFindIntersTri(const RationalRay &ray, const std::vector<genericPoint*> &in_verts, const std::vector<uint> &in_tris,
+                                      const std::vector<uint> &tris_to_test);
+
 inline IntersInfo fast2DCheckIntersectionOnRay(const Ray &ray, const explicitPoint3D &tv0, const explicitPoint3D &tv1, const explicitPoint3D &tv2);
+
+/****************************************************************/
+// custom functions
+inline IntersInfo fast2DCheckIntersectionOnRayRationals(const RationalRay &ray, const std::vector<bigrational> &tv0, const std::vector<bigrational> &tv1, const std::vector<bigrational> &tv2);
+/****************************************************************/
 
 inline bool checkIntersectionInsideTriangle3D(const Ray &ray, const explicitPoint3D &tv0, const explicitPoint3D &tv1, const explicitPoint3D &tv2);
 
 inline bool checkIntersectionInsideTriangle3DImplPoints(const Ray &ray, const genericPoint *tv0, const genericPoint *tv1, const genericPoint *tv2);
+/***********************************************/
+// custom functions
+inline bool checkIntersectionInsideTriangle3DImplPoints(const Ray &ray, const std::vector<bigrational> &tv0, const std::vector<bigrational> &tv1, const std::vector<bigrational> &tv2);
+/***********************************************/
+
+
+inline bool checkIntersectionInsideTriangle3D(const Ray &ray, const explicitPoint3D &tv0, const explicitPoint3D &tv1, const explicitPoint3D &tv2);
+/**************************************************/
+// custom functions
+inline bool checkIntersectionInsideTriangle3DRationals(const Ray &ray, const std::vector<bigrational> &tv0, const std::vector<bigrational> &tv1, const std::vector<bigrational> &tv2);
+inline uint checkTriangleOrientationRationals(const RationalRay &ray, const std::vector<bigrational> &tv0, const std::vector<bigrational> &tv1, const std::vector<bigrational> &tv2);
+/**************************************************/
 
 inline void sortIntersectedTrisAlongX(const Ray &ray, const std::vector<genericPoint*> &in_verts,
                                       const std::vector<uint> &in_tris, std::vector<uint> &inters_tris);

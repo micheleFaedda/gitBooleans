@@ -69,4 +69,13 @@ SimplexIntersection segment_segment_intersect_3d(const bigrational * s00, const 
 
 SimplexIntersection segment_triangle_intersect_3d(const bigrational * s0, const bigrational * s1, const bigrational * t0, const bigrational * t1, const bigrational * t2);
 
+void cross(const bigrational* va, const bigrational* vb, bigrational* res);
+
+void triangle_normal(const bigrational* pa, const bigrational* pb, const bigrational* pc, bigrational* n);
+
+bigrational dot(const bigrational * pa, const bigrational * pb);
+
+void plane_line_intersection(const bigrational* p0, const bigrational* p1, const bigrational* p2, const bigrational* l0, const bigrational* l1, bigrational* res);
+
+
 #endif //GITBOOLEANS_INTERSECT_CUSTOM_H

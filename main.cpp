@@ -31,7 +31,7 @@ int main(int argc, char **argv)
         file_path2 = argv[2];
     }else{
         file_path = "../data/cube.obj";
-        file_path2 = "../data/cube1_3.obj";
+        file_path2 = "../data/cube3.obj";
     }
 
 
@@ -66,9 +66,9 @@ int main(int argc, char **argv)
 
     //customBooleanPipeline(arr_verts, arr_in_tris, arr_out_tris, arr_in_labels, dupl_triangles, labels, patches, octree, op, bool_coords, bool_tris, bool_labels);
 
-    FastTrimesh tm(arr_verts, arr_out_tris, true);
+    FastTrimesh tm(arr_verts, arr_out_tris, false);
 
-    computeAllPatches(tm, labels, patches, true);
+    computeAllPatches(tm, labels, patches, false);
 
     // the informations about duplicated triangles (removed in arrangements) are restored in the original structures
     addDuplicateTrisInfoInStructures(dupl_triangles, arr_in_tris, arr_in_labels, octree);
@@ -125,6 +125,7 @@ int main(int argc, char **argv)
     std::vector <uint> vert_to_color;
     vert_to_color.resize(3);
 
+
     //reserve space for the parts to color and the vertices of each part
     for(uint i = 0; i < parts_to_color.size(); ++i){
         parts_to_color[i].reserve(num_tri_to_color_per_part[i]);
@@ -179,6 +180,7 @@ int main(int argc, char **argv)
 
     // rescale output
     double multiplier = tm.vert(tm.numVerts() - 1)->toExplicit3D().X();
+    std::cout<<"Size bool_coords: "<<bool_coords.size()<<std::endl;
     for(double &c : bool_coords) c /= multiplier;
     /**********************************************************************************************/
     cinolib::write_OBJ(file_out.c_str(), bool_coords, bool_tris, {});
@@ -186,8 +188,8 @@ int main(int argc, char **argv)
     GLcanvas gui;
     DrawableTrimesh<>new_mesh;
 
-    DrawableTrimesh<> m(file_out.c_str());
-    SurfaceMeshControls<DrawableTrimesh<>> controls(&m, &gui);
+    DrawableTrimesh<> m(bool_coords, bool_tris);
+    SurfaceMeshControls<DrawableTrimesh<>> controls(&m, &gui,file_out.c_str());
 
     gui.push(&m);
     gui.push(&controls);
@@ -199,11 +201,11 @@ int main(int argc, char **argv)
             if (t_id == -1) std::cerr << "Error: triangle not found" << std::endl;
 
             if(i == 0){
-                m.poly_data(t_id).color = Color::GRAY(2.0);
+                m.poly_data(t_id).color = Color(0.9f,0.9f,0.9f,0.8f);
             }else if(i == 1){
-                m.poly_data(t_id).color = Color::RED();
+                m.poly_data(t_id).color = Color(201/255.f,79/255.f,86/255.f);
             }  else if(i == 2){
-                m.poly_data(t_id).color = Color::GREEN();
+                m.poly_data(t_id).color = Color(122/255.f,239/255.f,72/255.f);
             }
         }
     }

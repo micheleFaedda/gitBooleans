@@ -22,7 +22,9 @@ add_subdirectory(arrangements/external/oneTBB)
 
 
 # add the executable
-add_executable(${PROJECT_NAME} main.cpp)
+add_executable(${PROJECT_NAME} main.cpp
+        code/intersect_custom.h code/intersect_custom.cpp
+        code/intersect_point_rationals.h code/intersect_point_rationals.cpp)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
         ./
@@ -48,7 +50,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/arrangem
 
 # add the executable
 add_executable(${PROJECT_NAME}_tests main_tests.cpp
-        code/intersect_custom.h code/intersect_custom.cpp)
+        code/intersect_custom.h code/intersect_custom.cpp
+        code/intersect_point_rationals.h code/intersect_point_rationals.cpp)
 
 target_include_directories(${PROJECT_NAME}_tests PUBLIC
         ./

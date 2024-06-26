@@ -4,7 +4,7 @@
 
 
 #include <iostream>
-
+#include <limits>
 #include <cinolib/rationals.h>
 #include <implicit_point.h>
 #include "code/intersect_custom.h"
@@ -107,6 +107,38 @@ int main(int argc, char **argv) {
     auto result_segment = segment_triangle_intersect_3d(&s0[0], &s1[0], &P0_rational[0], &P1_rational[0], &P2_rational[0]);
 
     std::cout << "Result Segment Triangle: " << result_segment << std::endl;
+
+
+    bigrational intersect_point[3];
+    plane_line_intersection(&P0_rational[0], &P1_rational[0], &P2_rational[0], &s0[0], &s1[0], intersect_point);
+
+    std::cout << "Intersect point: " << intersect_point[0] << " " << intersect_point[1] << " " << intersect_point[2] << std::endl;
+
+    double e0 = cinolib::orient3d(&P1_rational[0], &P0_rational[0], &s0[0], &intersect_point[0]).get_d();
+    double e1 = cinolib::orient3d(&P0_rational[0], &P2_rational[0], &s0[0], &intersect_point[0]).get_d();
+    double e2 = cinolib::orient3d(&P2_rational[0], &P1_rational[0], &s0[0], &intersect_point[0]).get_d();
+
+    std::cout << "e0: " << e0 << std::endl;
+    std::cout << "e1: " << e1 << std::endl;
+    std::cout << "e2: " << e2 << std::endl;
+
+    // Smallest positive normal numbers
+    double smallest_normal_double = std::numeric_limits<double>::min();
+
+
+    double smallest_subnormal_double = std::numeric_limits<double>::denorm_min();
+
+    std::cout << "Smallest positive normal double: " << smallest_normal_double << std::endl;
+    std::cout << "Smallest positive subnormal double: " << smallest_subnormal_double << std::endl;
+
+
+    bigrational smallest_normal_rational = bigrational(std::numeric_limits<double>::min());
+    bigrational smallest_subnormal_rational = bigrational(std::numeric_limits<double>::denorm_min());
+
+    std::cout << "Smallest positive normal rational: " << smallest_normal_rational << std::endl;
+    std::cout << "Smallest positive subnormal rational: " << smallest_subnormal_rational << std::endl;
+
+
     return 0;
 
 }
