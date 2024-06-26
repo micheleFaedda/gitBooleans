@@ -547,7 +547,7 @@ inline void findRayEndpoints(const FastTrimesh &tm, const phmap::flat_hash_set<u
 }
 
 
-inline void findRayEndpointsCustom(const FastTrimesh &tm, const phmap::flat_hash_set<uint> &patch, const cinolib::vec3d &max_coords, Ray &ray, RationalRay &rational_ray, bool &fullImplicit)
+inline void findRayEndpointsCustom(const FastTrimesh &tm, const phmap::flat_hash_set<uint> &patch, const cinolib::vec3d &max_coords, Ray &ray, RationalRay &rational_ray)
 {
     // check for an explicit point (all operations with explicits are faster)
     int v_id = -1;
@@ -681,7 +681,6 @@ inline void findRayEndpointsCustom(const FastTrimesh &tm, const phmap::flat_hash
             rational_ray.tv[0] = static_cast<int>(tm.triVertID(t_id, 0));
             rational_ray.tv[1] = static_cast<int>(tm.triVertID(t_id, 1));
             rational_ray.tv[2] = static_cast<int>(tm.triVertID(t_id, 2));
-            fullImplicit = true;
             return;
         } else{
 
@@ -772,7 +771,7 @@ inline void computeInsideOut(const FastTrimesh &tm, const std::vector<phmap::fla
 
         phmap::flat_hash_set<uint> tmp_inters;
 
-        if(fullImplicit){
+        if(rational_ray.tv[0] != -1){//is defined
             std::vector<IntersectionPointRationals> inter_rat;
             std::vector<uint> inters_tris_rat;
 
