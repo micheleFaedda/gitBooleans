@@ -402,9 +402,9 @@ void plane_line_intersection(const bigrational* p0,
 
     bigrational d = dot(pl,n)/dot(l,n);
 
-    res[0] = l0[0] + l[0]* d;
-    res[1] = l0[1] + l[1]* d;
-    res[2] = l0[2] + l[2]* d;
+    res[0] = l0[0] + l[0] * d;
+    res[1] = l0[1] + l[1] * d;
+    res[2] = l0[2] + l[2] * d;
 
     assert(cinolib::orient3d(p0,p1,p2,res)==bigrational(0));
 }

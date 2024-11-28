@@ -45,6 +45,7 @@
 #include "triangulation.h"
 #include <cinolib/octree.h>
 #include "intersect_custom.h"
+#include "code/intersect_point_rationals.h"
 
 #include <bitset>
 
@@ -178,6 +179,9 @@ inline Ray perturbZRay(const RationalRay &ray, uint offset);
 inline int perturbRayAndFindIntersTri(const Ray &ray, const std::vector<genericPoint*> &in_verts, const std::vector<uint> &in_tris,
                                        const std::vector<uint> &tris_to_test);
 
+inline int perturbRayAndFindIntersTri(const RationalRay &ray, const std::vector<genericPoint*> &in_verts, const std::vector<uint> &in_tris,
+                                      const std::vector<uint> &tris_to_test);
+
 
 inline int perturbRayAndFindIntersTri(const RationalRay &ray, const std::vector<genericPoint*> &in_verts, const std::vector<uint> &in_tris,
                                       const std::vector<uint> &tris_to_test);
@@ -196,12 +200,18 @@ inline bool checkIntersectionInsideTriangle3DImplPoints(const Ray &ray, const ge
 // custom functions
 inline bool checkIntersectionInsideTriangle3DImplPoints(const Ray &ray, const std::vector<bigrational> &tv0, const std::vector<bigrational> &tv1, const std::vector<bigrational> &tv2);
 /***********************************************/
+/***********************************************/
+// custom functions
+inline void findIntersectionsAlongRayRationals(const FastTrimesh &tm, const std::vector<phmap::flat_hash_set<uint>> &patches, const cinolib::Octree& tree, const std::vector<genericPoint *> &in_verts,
+                                               const std::vector<std::bitset<NBIT>> &in_labels, Labels &labels, const RationalRay &rational_ray,
+                                               uint curr_p_id, phmap::flat_hash_set<uint> &tmp_inters, std::vector<IntersectionPointRationals> &inter_rat);
+/***********************************************/
 
 
 inline bool checkIntersectionInsideTriangle3D(const Ray &ray, const explicitPoint3D &tv0, const explicitPoint3D &tv1, const explicitPoint3D &tv2);
 /**************************************************/
 // custom functions
-inline bool checkIntersectionInsideTriangle3DRationals(const Ray &ray, const std::vector<bigrational> &tv0, const std::vector<bigrational> &tv1, const std::vector<bigrational> &tv2);
+inline bool checkIntersectionInsideTriangle3DRationals(const RationalRay &ray, const std::vector<bigrational> &tv0, const std::vector<bigrational> &tv1, const std::vector<bigrational> &tv2);
 inline uint checkTriangleOrientationRationals(const RationalRay &ray, const std::vector<bigrational> &tv0, const std::vector<bigrational> &tv1, const std::vector<bigrational> &tv2);
 /**************************************************/
 
@@ -230,6 +240,7 @@ inline uint boolSubtraction(FastTrimesh &tm, const Labels &labels);
 inline uint boolXOR(FastTrimesh &tm, const Labels &labels);
 
 inline uint bitsetToUint(const std::bitset<NBIT> &b);
+inline uint bitsetToUintCustom(const bitset<NBIT> &b);
 
 inline bool consistentWinding(const uint *t0, const uint *t1);
 

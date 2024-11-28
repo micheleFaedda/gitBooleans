@@ -846,7 +846,12 @@ inline void setFPUModeToRoundNEAR() { fesetround(FE_TONEAREST); }
 		}
 
 		bigrational operator/(const bigrational& r) const {
-			if (!r.sign) ip_error("bigrational::operator/ : division by zero!\n");
+			if (!r.sign){
+                std::cout <<"Numerator: " << r.numerator.get_dec_str() << std::endl;
+                std::cout <<"Denominator: " << r.denominator.get_dec_str() << std::endl;
+                assert(false && "bigrational::operator/ : division by zero!\n");
+                std::cerr << "bigrational::operator/ : division by zero!\n";
+                ip_error("bigrational::operator/ : division by zero!\n");}
 			return operator*(r.inverse()); 
 		}
 

@@ -1039,53 +1039,46 @@ inline int genericPoint::maxComponentInTriangleNormal(double ov1x, double ov1y, 
 
 inline bigrational fabs(bigrational x)
 {
-   return (x.sgn() != 0) ? x.negation() : x;
+   return (x < bigrational(0)) ? x.negation() : x;
 }
 
 inline int maxComponentInTriangleNormal_filteredRationals(bigrational ov1x, bigrational ov1y, bigrational ov1z, bigrational ov2x, bigrational ov2y, bigrational ov2z, bigrational ov3x, bigrational ov3y, bigrational ov3z)
 {
-    bigrational v3x = ov3x - ov2x;
-    bigrational v3y = ov3y - ov2y;
-    bigrational v3z = ov3z - ov2z;
-    bigrational v2x = ov2x - ov1x;
-    bigrational v2y = ov2y - ov1y;
-    bigrational v2z = ov2z - ov1z;
-    bigrational nvx1 = v2y * v3z;
-    bigrational nvx2 = v2z * v3y;
+
+
+    /**New code**/
+    bigrational e1x = ov2x - ov1x;
+    bigrational e1y = ov2y - ov1y;
+    bigrational e1z = ov2z - ov1z;
+
+    bigrational e2x = ov3x - ov1x;
+    bigrational e2y = ov3y - ov1y;
+    bigrational e2z = ov3z - ov1z;
+
+    bigrational nvx1 = e1y * e2z;
+    bigrational nvx2 = e1z * e2y;
     bigrational nvx = nvx1 - nvx2;
-    bigrational nvy1 = v3x * v2z;
-    bigrational nvy2 = v3z * v2x;
+
+    bigrational nvy1 = e2x * e1z;
+    bigrational nvy2 = e2z * e1x;
     bigrational nvy = nvy1 - nvy2;
-    bigrational nvz1 = v2x * v3y;
-    bigrational nvz2 = v2y * v3x;
+
+    bigrational nvz1 = e1x * e2y;
+    bigrational nvz2 = e1y * e2x;
     bigrational nvz = nvz1 - nvz2;
-
-    bigrational _tmp_fabs;
-    bigrational max_var(0,0,0);
-    if ((_tmp_fabs = fabs(v3x)) > max_var) max_var = _tmp_fabs;
-    if ((_tmp_fabs = fabs(v3y)) > max_var) max_var = _tmp_fabs;
-    if ((_tmp_fabs = fabs(v3z)) > max_var) max_var = _tmp_fabs;
-    if ((_tmp_fabs = fabs(v2x)) > max_var) max_var = _tmp_fabs;
-    if ((_tmp_fabs = fabs(v2y)) > max_var) max_var = _tmp_fabs;
-    if ((_tmp_fabs = fabs(v2z)) > max_var) max_var = _tmp_fabs;
-
-    bigrational costant(8.88395e-016);
-    bigrational epsilon = costant * max_var * max_var;
 
     bigrational nvxc = fabs(nvx);
     bigrational nvyc = fabs(nvy);
     bigrational nvzc = fabs(nvz);
-    bigrational nv = nvxc;
-    if (nvyc > nv) nv = nvyc;
-    if (nvzc > nv) nv = nvzc;
 
-    if (nv > epsilon)
-    {
-        if (nv == nvxc) return 0;
-        if (nv == nvyc) return 1;
-        if (nv == nvzc) return 2;
-    }
-    return -1;
+    bigrational nv = nvxc;
+
+    if (nvyc > nv) nv = nvyc;
+    if (nvzc > nv) return 2;
+    if (nv == nvxc) return 0;
+    return 1;
+    /****/
+
 }
 /*
 inline int maxComponentInTriangleNormal_exact(double ov1x, double ov1y, double ov1z, double ov2x, double ov2y, double ov2z, double ov3x, double ov3y, double ov3z)

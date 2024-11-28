@@ -12,14 +12,16 @@ class IntersectionPointRationals {
 private:
     bigrational x,y,z;
     uint tri_id;
+    uint patch_id;
 
 public:
 
-    IntersectionPointRationals(bigrational x, bigrational y, bigrational z, uint tri_id){
+    IntersectionPointRationals(bigrational x, bigrational y, bigrational z, uint tri_id, uint patch_id){
         this->x = x;
         this->y = y;
         this->z = z;
         this->tri_id = tri_id;
+        this->patch_id = patch_id;
     }
 
     bigrational getX() const {
@@ -38,6 +40,10 @@ public:
         return tri_id;
     }
 
+    uint getPatchId() const {
+        return patch_id;
+    }
+
     void setX(bigrational x) {
         this->x = x;
     }
@@ -52,6 +58,10 @@ public:
 
     void setTriId(uint tri_id) {
         this->tri_id = tri_id;
+    }
+
+    void setPatchId(uint patch_id) {
+        this->patch_id = patch_id;
     }
 
     bool operator==(const IntersectionPointRationals &p) const {
@@ -110,6 +120,17 @@ public:
         return z > p.z;
     }
 
+
+    static unsigned int findPatchIdByTriId(const std::vector<IntersectionPointRationals>& elements, unsigned int tri_id) {
+        for (const auto& element : elements) {
+            if (element.tri_id == tri_id) {
+                return element.patch_id;
+            }
+        }
+        //return an error message
+
+        assert(true && "Error in findPatchIdByTriId");
+    }
 
 };
 

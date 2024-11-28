@@ -52,7 +52,8 @@ inline void find_intersections(const std::vector<cinolib::vec3d> & verts, const 
 
     intersections.reserve((int)sqrt(tris.size()));
     tbb::spin_mutex mutex;
-    tbb::parallel_for((uint)0, (uint)o.leaves.size(), [&](uint i)
+    //tbb::parallel_for((uint)0, (uint)o.leaves.size(), [&](uint i)
+    for(uint i=0; i<o.leaves.size(); ++i)
     {
         auto & leaf = o.leaves.at(i);
         if(leaf->item_indices.empty()) return;
@@ -76,7 +77,8 @@ inline void find_intersections(const std::vector<cinolib::vec3d> & verts, const 
                     }
                 }
             }
-    });
+    }
+    //);
 
 
     remove_duplicates(intersections);
