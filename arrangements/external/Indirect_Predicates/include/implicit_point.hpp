@@ -1029,11 +1029,6 @@ inline int genericPoint::maxComponentInTriangleNormal(double ov1x, double ov1y, 
 }
 
 
-
-
-
-
-
 /***********************************************************************/
 //custom functions
 

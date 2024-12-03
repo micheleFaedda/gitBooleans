@@ -856,8 +856,8 @@ inline void setFPUModeToRoundNEAR() { fesetround(FE_TONEAREST); }
 		}
 
 		// Comparison operators
-		bool operator==(const bigrational& r) const {
-			return (sign == r.sign && numerator == r.numerator && denominator == r.denominator);
+		bool operator==(const bigrational& r) const{
+            return (sign == r.sign && numerator == r.numerator && denominator == r.denominator);
 		}
 
 		bool operator!=(const bigrational& r) const {

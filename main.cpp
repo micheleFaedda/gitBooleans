@@ -30,10 +30,10 @@ int main(int argc, char **argv)
         file_path = argv[1];
         file_path2 = argv[2];
     }else{
-        //file_path = "../data/A.obj";
-        file_path = "../data/test/cube.obj";
-        //file_path2 = "../data/C.obj";
-        file_path2 = "../data/test/pyramid_transform.obj";
+        file_path = "../data/A.obj";
+        //file_path = "../data/test/cube.obj";
+        file_path2 = "../data/C.obj";
+        //file_path2 = "../data/test/pyramid_transform.obj";
     }
 
 

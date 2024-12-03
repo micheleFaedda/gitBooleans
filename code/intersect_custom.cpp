@@ -5,6 +5,8 @@
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 #include "code/intersect_custom.h"
 
+bigrational zero_rat = bigrational(0,0,0);
+
 // returns:
 // DO_NOT_INTERSECT     if s and t are fully disjoint
 // SIMPLICIAL_COMPLEX   if s is an edge of t, or s is degenerate and coincides with a vertex of t
@@ -14,7 +16,7 @@ bool points_are_colinear_2d(const bigrational * p0,
                                    const bigrational * p1,
                                    const bigrational * p2)
 {
-    return (cinolib::orient2d(&p0[0],&p1[0],&p2[0]).get_d()==0);
+    return (cinolib::orient2d(&p0[0],&p1[0],&p2[0]).sgn()==0);
 }
 
 
@@ -98,18 +100,18 @@ PointInSimplex point_in_triangle_2d(const bigrational * p,
     if(vec_equals_2d(p, t1)) return ON_VERT1;
     if(vec_equals_2d(p, t2)) return ON_VERT2;
 
-    double e0p_area = cinolib::orient2d(&t0[0], &t1[0], &p[0]).get_d();
-    double e1p_area = cinolib::orient2d(&t1[0], &t2[0], &p[0]).get_d();
-    double e2p_area = cinolib::orient2d(&t2[0], &t0[0], &p[0]).get_d();
-
-    bool hit = (e0p_area >= 0 && e1p_area >= 0 && e2p_area >= 0) ||
-               (e0p_area <= 0 && e1p_area <= 0 && e2p_area <= 0);
+    bigrational e0p_area = cinolib::orient2d(&t0[0], &t1[0], &p[0]);
+    bigrational e1p_area = cinolib::orient2d(&t1[0], &t2[0], &p[0]);
+    bigrational e2p_area = cinolib::orient2d(&t2[0], &t0[0], &p[0]);
+    
+    bool hit = (((e0p_area > zero_rat || e0p_area.sgn() == 0) && (e1p_area > zero_rat || e1p_area.sgn() == 0) && (e2p_area > zero_rat || e2p_area.sgn() == 0)) ||
+                ((e0p_area < zero_rat || e0p_area.sgn() == 0) && (e1p_area > zero_rat || e1p_area.sgn() == 0) && (e2p_area > zero_rat || e2p_area.sgn() == 0)));
 
     if(hit)
     {
-        if(e0p_area == 0) return ON_EDGE0;
-        if(e1p_area == 0) return ON_EDGE1;
-        if(e2p_area == 0) return ON_EDGE2;
+        if(e0p_area.sgn() == 0) return ON_EDGE0;
+        if(e1p_area.sgn() == 0) return ON_EDGE1;
+        if(e2p_area.sgn() == 0) return ON_EDGE2;
 
         return STRICTLY_INSIDE;
     }
@@ -158,7 +160,7 @@ bool points_are_coplanar_3d(const bigrational * p0,
                                    const bigrational * p2,
                                    const bigrational * p3)
 {
-    return (cinolib::orient3d(&p0[0],&p1[0],&p2[0],&p3[0]).get_d()==0);
+    return (cinolib::orient3d(&p0[0],&p1[0],&p2[0],&p3[0]).sgn()==0);
 }
 
 SimplexIntersection segment_segment_intersect_2d(const bigrational * s00,
@@ -167,17 +169,17 @@ SimplexIntersection segment_segment_intersect_2d(const bigrational * s00,
                                                         const bigrational * s11)
 {
     // https://www.geeksforgeeks.org/check-if-two-given-line-segments-intersect/
-    double det_s00 = cinolib::orient2d(s10, s11, s00).get_d();
-    double det_s01 = cinolib::orient2d(s10, s11, s01).get_d();
-    double det_s10 = cinolib::orient2d(s00, s01, s10).get_d();
-    double det_s11 = cinolib::orient2d(s00, s01, s11).get_d();
+    bigrational det_s00 = cinolib::orient2d(s10, s11, s00);
+    bigrational det_s01 = cinolib::orient2d(s10, s11, s01);
+    bigrational det_s10 = cinolib::orient2d(s00, s01, s10);
+    bigrational det_s11 = cinolib::orient2d(s00, s01, s11);
 
     // Shewchuk's orient predicates return a rough approximation of the determinant.
     // I am converting values to { -1, 0, 1 } for a simpler check of intersection cases
-    int s00_wrt_s1 = (det_s00 > 0) ? 1 : ((det_s00 < 0) ? -1 : 0);
-    int s01_wrt_s1 = (det_s01 > 0) ? 1 : ((det_s01 < 0) ? -1 : 0);
-    int s10_wrt_s0 = (det_s10 > 0) ? 1 : ((det_s10 < 0) ? -1 : 0);
-    int s11_wrt_s0 = (det_s11 > 0) ? 1 : ((det_s11 < 0) ? -1 : 0);
+    int s00_wrt_s1 = (det_s00 > zero_rat) ? 1 : ((det_s00 < zero_rat) ? -1 : 0);
+    int s01_wrt_s1 = (det_s01 > zero_rat) ? 1 : ((det_s01 < zero_rat) ? -1 : 0);
+    int s10_wrt_s0 = (det_s10 > zero_rat) ? 1 : ((det_s10 < zero_rat) ? -1 : 0);
+    int s11_wrt_s0 = (det_s11 > zero_rat) ? 1 : ((det_s11 < zero_rat) ? -1 : 0);
 
     // segments intersect at a single point
     if(s00_wrt_s1 != s01_wrt_s1 && s10_wrt_s0 != s11_wrt_s0)
@@ -286,12 +288,12 @@ SimplexIntersection segment_triangle_intersect_3d(const bigrational * s0,
         return SIMPLICIAL_COMPLEX;
     }
 
-    auto vol_s0_t = cinolib::orient3d(s0, t0, t1, t2).get_d();
-    auto vol_s1_t = cinolib::orient3d(s1, t0, t1, t2).get_d();
+    bigrational vol_s0_t = cinolib::orient3d(s0, t0, t1, t2);
+    bigrational vol_s1_t = cinolib::orient3d(s1, t0, t1, t2);
 
-    if(vol_s0_t > 0 && vol_s1_t > 0) return DO_NOT_INTERSECT; // s is above t
-    if(vol_s0_t < 0 && vol_s1_t < 0) return DO_NOT_INTERSECT; // s is below t
-    if(vol_s0_t == 0 && vol_s1_t == 0)                        // s and t are coplanar
+    if(vol_s0_t > zero_rat && vol_s1_t > zero_rat) return DO_NOT_INTERSECT; // s is above t
+    if(vol_s0_t < zero_rat && vol_s1_t < zero_rat) return DO_NOT_INTERSECT; // s is below t
+    if(vol_s0_t.sgn() == 0 && vol_s1_t.sgn() == 0)                        // s and t are coplanar
     {
         // same code as the 2D version, I just copied it here....
 
@@ -338,13 +340,13 @@ SimplexIntersection segment_triangle_intersect_3d(const bigrational * s0,
         return SIMPLICIAL_COMPLEX;
     }
 
-    double vol_s_t01 = cinolib::orient3d(s0, s1, t0, t1).get_d();
-    double vol_s_t12 = cinolib::orient3d(s0, s1, t1, t2).get_d();
-    double vol_s_t20 = cinolib::orient3d(s0, s1, t2, t0).get_d();
+    bigrational vol_s_t01 = cinolib::orient3d(s0, s1, t0, t1);
+    bigrational vol_s_t12 = cinolib::orient3d(s0, s1, t1, t2);
+    bigrational vol_s_t20 = cinolib::orient3d(s0, s1, t2, t0);
 
-    if((vol_s_t01 > 0 && vol_s_t12 < 0) || (vol_s_t01 < 0 && vol_s_t12 > 0)) return DO_NOT_INTERSECT;
-    if((vol_s_t12 > 0 && vol_s_t20 < 0) || (vol_s_t12 < 0 && vol_s_t20 > 0)) return DO_NOT_INTERSECT;
-    if((vol_s_t20 > 0 && vol_s_t01 < 0) || (vol_s_t20 < 0 && vol_s_t01 > 0)) return DO_NOT_INTERSECT;
+    if((vol_s_t01 > zero_rat && vol_s_t12 < zero_rat) || (vol_s_t01 < zero_rat && vol_s_t12 > zero_rat)) return DO_NOT_INTERSECT;
+    if((vol_s_t12 > zero_rat && vol_s_t20 < zero_rat) || (vol_s_t12 < zero_rat && vol_s_t20 > zero_rat)) return DO_NOT_INTERSECT;
+    if((vol_s_t20 > zero_rat && vol_s_t01 < zero_rat) || (vol_s_t20 < zero_rat && vol_s_t01 > zero_rat)) return DO_NOT_INTERSECT;
 
     return INTERSECT;
 }
@@ -406,7 +408,7 @@ void plane_line_intersection(const bigrational* p0,
     res[1] = l0[1] + l[1] * d;
     res[2] = l0[2] + l[2] * d;
 
-    assert(cinolib::orient3d(p0,p1,p2,res)==bigrational(0));
+    assert(cinolib::orient3d(p0,p1,p2,res).sgn() == 0);
 }
 
 

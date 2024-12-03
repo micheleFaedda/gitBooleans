@@ -8,11 +8,147 @@
 #include <cinolib/rationals.h>
 #include <implicit_point.h>
 #include "code/intersect_custom.h"
+#include <cinolib/meshes/meshes.h>
+#include <cinolib/gl/glcanvas.h>
+#include <cinolib/gl/surface_mesh_controls.h>
 using namespace cinolib;
 
 
 int main(int argc, char **argv) {
+    bigrational zero = bigrational(0,0,0);
 
+    const uint64_t one = 412425389222715451;
+    const uint64_t two = 316268131472977041;
+    const bignatural one_natural = bignatural(one);
+    const bignatural two_natural = bignatural(two);
+    bigrational comp = bigrational(one_natural, two_natural,0);
+    bool is_zero = comp > bigrational(0);
+    std::cout << "Is zero: " << is_zero << std::endl;
+
+    //triangle t_id = 32
+    const bigrational x0(3);
+    const bigrational y0(0,0,0);
+    const bigrational z0(3);
+
+    const bigrational x1(0,0,0);
+    const bigrational y1(0,0,0);
+    const bigrational z1(3);
+
+    const bigrational x2(2999631764189355,2251799813685248, 1);
+    const bigrational y2(0,0,0);
+    const bigrational z2(8088317212689633,4503599627370496,1);
+
+    const std::vector<bigrational> t0 = {x0, y0, z0};
+    const std::vector<bigrational> t1 = {x1, y1, z1};
+    const std::vector<bigrational> t2 = {x2, y2, z2};
+
+    const bigrational x0_ray (17826409253836285,9007199254740992, 1);
+    const bigrational y0_ray (2,3,1);
+    const bigrational z0_ray (36017237179440431,54043195528445952,1);
+
+    std::cout << "x0_ray: " << x0_ray << std::endl;
+
+    const bigrational x1_ray (17826409253836285,9007199254740992, 1);
+    const bigrational y1_ray (0,0,0);
+    const bigrational z1_ray (17,4,1);
+
+
+    const std::vector<bigrational> ray0 = {x0_ray, y0_ray, z0_ray};
+    const std::vector<bigrational> ray1 = {x1_ray, y1_ray, z1_ray};
+
+    std::vector <double> coords;
+    coords.push_back(x0.get_d());
+    coords.push_back(y0.get_d());
+    coords.push_back(z0.get_d());
+
+    coords.push_back(x1.get_d());
+    coords.push_back(y1.get_d());
+    coords.push_back(z1.get_d());
+
+    coords.push_back(x2.get_d());
+    coords.push_back(y2.get_d());
+    coords.push_back(z2.get_d());
+
+    std::vector <uint> faces;
+    faces.push_back(0);
+    faces.push_back(1);
+    faces.push_back(2);
+
+    std::vector <double> ray_coords;
+    ray_coords.push_back(x0_ray.get_d());
+    ray_coords.push_back(y0_ray.get_d());
+    ray_coords.push_back(z0_ray.get_d());
+
+    ray_coords.push_back(x1_ray.get_d());
+    ray_coords.push_back(y1_ray.get_d());
+    ray_coords.push_back(z1_ray.get_d());
+
+
+
+    //triangle t_id = 2
+    const bigrational x0_2(0,0,0);
+    const bigrational y0_2(0,0,0);
+    const bigrational z0_2(3);
+
+    const bigrational x1_2(3);
+    const bigrational y1_2(0,0,0);
+    const bigrational z1_2(3);
+
+    const bigrational x2_2(3);
+    const bigrational y2_2(1);
+    const bigrational z2_2(3);
+
+    const std::vector<bigrational> t0_2 = {x0_2, y0_2, z0_2};
+    const std::vector<bigrational> t1_2 = {x1_2, y1_2, z1_2};
+    const std::vector<bigrational> t2_2 = {x2_2, y2_2, z2_2};
+
+
+    coords.push_back(x0_2.get_d());
+    coords.push_back(y0_2.get_d());
+    coords.push_back(z0_2.get_d());
+
+    coords.push_back(x1_2.get_d());
+    coords.push_back(y1_2.get_d());
+    coords.push_back(z1_2.get_d());
+
+    coords.push_back(x2_2.get_d());
+    coords.push_back(y2_2.get_d());
+    coords.push_back(z2_2.get_d());
+
+    faces.push_back(3);
+    faces.push_back(4);
+    faces.push_back(5);
+
+
+    bool intersection_t0 = segment_triangle_intersect_3d(&ray0[0], &ray1[0], &t0[0], &t1[0], &t2[0]);
+    std::cout << "Intersection t0: " << intersection_t0 << std::endl;
+
+    bool intersection_t1 = segment_triangle_intersect_3d(&ray0[0], &ray1[0], &t0_2[0], &t1_2[0], &t2_2[0]);
+    std::cout << "Intersection t1: " << intersection_t1 << std::endl;
+
+
+    GLcanvas gui;
+    DrawableTrimesh<>m(coords, faces);
+
+
+
+    SurfaceMeshControls<DrawableTrimesh<>> controls(&m, &gui, "test");
+
+    gui.push(&m);
+    gui.push(&controls);
+
+
+    m.updateGL();
+
+    DrawableSegmentSoup segment;
+    Color customColor = Color::BLUE();
+
+    segment.push_seg(vec3d(ray_coords[0], ray_coords[1], ray_coords[2]), vec3d(ray_coords[3], ray_coords[4], ray_coords[5]), customColor);
+    segment.draw(100);
+    gui.push(&segment);
+
+
+    return gui.launch();
     //plane
     const explicitPoint3D ir(0.0,0.0,0.0);
     const explicitPoint3D is(4.0,4.0,0.0);

@@ -166,6 +166,10 @@ inline void findEdgeTris(uint ev0_id, uint ev1_id, const std::bitset<NBIT> &ref_
                              const std::vector<uint> &in_tris, const std::vector<std::bitset<NBIT>> &in_labels,
                              std::vector<uint> &edge_tris);
 
+inline void findEdgeTrisCustom(uint ev0_id, uint ev1_id, const std::bitset<NBIT> &ref_label, const phmap::flat_hash_set<uint> &inters_tris,
+                               const std::vector<uint> &in_tris, const std::vector<std::bitset<NBIT>> &in_labels,
+                               std::vector<uint> &edge_tris);
+
 inline Ray perturbXRay(const Ray &ray, uint offset);
 
 inline Ray perturbYRay(const Ray &ray, uint offset);

@@ -842,8 +842,12 @@ inline void findIntersectionsAlongRayRationals(const FastTrimesh &tm, const std:
     //for (uint p_id_other = 0; p_id_other < patches.size(); p_id_other++) {
        //  if (p_id_other == curr_p_id) continue;
 
-     //for (uint t_id: patches.at(p_id_other)){
-        for(uint t_id = 0; t_id < tm.numTris(); t_id++){
+    //I take the coordinates of the end points of the ray
+    std::vector<bigrational> ray_v0 = {rational_ray.v0[0], rational_ray.v0[1], rational_ray.v0[2]};
+    std::vector<bigrational> ray_v1 = {rational_ray.v1[0], rational_ray.v1[1], rational_ray.v1[2]};
+
+    //for (uint t_id: patches.at(p_id_other)){
+    for(uint t_id = 0; t_id < tm.numTris(); t_id++){
 
             const uint tv[3] = {tm.triVertID(t_id, 0), tm.triVertID(t_id, 1), tm.triVertID(t_id, 2)};
 
@@ -858,10 +862,25 @@ inline void findIntersectionsAlongRayRationals(const FastTrimesh &tm, const std:
             std::vector<bigrational> tv1 = {x1, y1, z1};
             std::vector<bigrational> tv2 = {x2, y2, z2};
 
-            //I take the coordinates of the end points of the ray
-            std::vector<bigrational> ray_v0 = {rational_ray.v0[0], rational_ray.v0[1], rational_ray.v0[2]};
-            std::vector<bigrational> ray_v1 = {rational_ray.v1[0], rational_ray.v1[1], rational_ray.v1[2]};
+            bool intersection = segment_triangle_intersect_3d(&ray_v0[0], &ray_v1[0], &tv0[0], &tv1[0], &tv2[0]);
+            if(t_id == 32 || t_id == 2){
+                //print the coords of the triangle
+                std::cout << "Triangle coords  " << t_id << ": " << std::endl;
+                std::cout << "v0: " << tv0[0] << " " << tv0[1] << " " << tv0[2] << std::endl;
+                std::cout << "v1: " << tv1[0] << " " << tv1[1] << " " << tv1[2] << std::endl;
+                std::cout << "v2: " << tv2[0] << " " << tv2[1] << " " << tv2[2] << std::endl;
 
+                //print the coords of the ray
+                std::cout << "Ray coords: " << std::endl;
+                std::cout << "v0: " << ray_v0[0] << " " << ray_v0[1] << " " << ray_v0[2] << std::endl;
+                std::cout << "v1: " << ray_v1[0] << " " << ray_v1[1] << " " << ray_v1[2] << std::endl;
+
+                //print the dir
+                std::cout << "Direction: " << rational_ray.dir << std::endl;
+
+
+                std::cout<<"Intersection : " << intersection << std::endl;
+            }
             //I check if the ray intersects the triangle
             if (segment_triangle_intersect_3d(&ray_v0[0], &ray_v1[0], &tv0[0], &tv1[0], &tv2[0])) {
                 tmp_inters.insert(t_id);
@@ -995,9 +1014,12 @@ inline void computeInsideOut(const FastTrimesh &tm, const std::vector<phmap::fla
                 std::cout <<"t_id_int before fast2DIntersectionOnRayRationals: " << t_id_int << std::endl;
                 IntersInfo ii = fast2DCheckIntersectionOnRayRationals(rational_ray, tv0_exact, tv1_exact, tv2_exact);
                 std::cout<< "ii: " << ii << std::endl;
-                if (ii == DISCARD || ii == NO_INT){
-                    std::cout<<"DISCARD OR NO_INT" << std::endl;
+                if (ii == DISCARD){
+                    std::cout<<"DISCARD" << std::endl;
                      continue;}
+                if (ii == NO_INT){
+                    std::cout<<"NO_INT" << std::endl;
+                    continue;}
 
                 if (ii == INT_IN_TRI) {
                     std::cout << "INT_IN_TRI" << " t_id-> "<<t_id_int<<std::endl;
@@ -1024,20 +1046,34 @@ inline void computeInsideOut(const FastTrimesh &tm, const std::vector<phmap::fla
                         inters_tris_rat.push_back(winner_tri);
                 } else if (ii == INT_IN_EDGE01 || ii == INT_IN_EDGE12 || ii == INT_IN_EDGE20) {
                     std::cout << "INT_IN_EDGE" << std::endl;
-                   /* uint ev0_id, ev1_id;
-                    if (ii == INT_IN_EDGE01) {
-                        ev0_id = in_tris[3 * t_id_int];
-                        ev1_id = in_tris[3 * t_id_int + 1];
-                    } else if (ii == INT_IN_EDGE12) {
-                        ev0_id = in_tris[3 * t_id_int + 1];
-                        ev1_id = in_tris[3 * t_id_int + 2];
-                    } else {
-                        ev0_id = in_tris[3 * t_id_int + 2];
-                        ev1_id = in_tris[3 * t_id_int];
-                    }
 
-                    std::vector<uint> edge_tris;
-                    findEdgeTris(ev0_id, ev1_id, tested_tri_label, tmp_inters, in_tris, in_labels, edge_tris);
+                   int ev0_id, ev1_id;
+                   if (ii == INT_IN_EDGE01) {
+                       ev0_id = in_tris[3 * t_id_int];
+                       ev1_id = in_tris[3 * t_id_int + 1];
+                   } else if (ii == INT_IN_EDGE12) {
+                       ev0_id = in_tris[3 * t_id_int + 1];
+                       ev1_id = in_tris[3 * t_id_int + 2];
+                   } else {
+                       ev0_id = in_tris[3 * t_id_int + 2];
+                       ev1_id = in_tris[3 * t_id_int];
+                   }
+
+                   std::cout << "t_id_int: " << t_id_int<<std::endl;
+                   std::cout << "ev0_id: " << ev0_id << std::endl;
+                   std::cout << "ev1_id: " << ev1_id << std::endl;
+
+                   std::vector<uint> edge_tris;
+
+                    /**Qua dentro entrano:
+                     * _vertice 1 dell'edge
+                     * _vertice 2 dell'edge
+                     * _label di appartenenza del triangolo
+                     * _lista degli id dei triangoli interesecati dal raggio
+                     * _lista degli id dei triangoli in ingresso
+                     * _lista delle label dei triangoli in ingresso
+                     * _lista degli edge dei triangoli che verranno interesecati*/
+                    /*findEdgeTrisCustom(ev0_id, ev1_id, tested_tri_label, tmp_inters, in_tris, in_labels, edge_tris);
 
                     for (uint t: edge_tris)
                         visited_tri.insert(t); // mark all the one ring as visited
@@ -1047,7 +1083,8 @@ inline void computeInsideOut(const FastTrimesh &tm, const std::vector<phmap::fla
 
                     if (winner_tri != -1)
                         inters_tris_rat.push_back(winner_tri);
-                */}
+                    */
+                }
                 std::cout << "inter_rat size: " << inter_rat.size() << std::endl;
                 if (rational_ray.dir == 'X')
                     //sort the inter_rat along the x coordinate
@@ -1285,9 +1322,27 @@ inline void findEdgeTris(uint ev0_id, uint ev1_id, const std::bitset<NBIT> &ref_
 {
     for(auto t_id : inters_tris)
     {
-        if(in_labels[t_id] == ref_label && triContainsVert(t_id, ev0_id, in_tris) && triContainsVert(t_id, ev1_id, in_tris))
+        if(in_labels[t_id] == ref_label  && triContainsVert(t_id, ev0_id, in_tris) && triContainsVert(t_id, ev1_id, in_tris))
             edge_tris.push_back(t_id);
     }
+
+    assert(edge_tris.size() == 2 && "problem in finding edge triangles"); // always true in closed and manifold meshes
+}
+
+inline void findEdgeTrisCustom(uint ev0_id, uint ev1_id, const std::bitset<NBIT> &ref_label, const phmap::flat_hash_set<uint> &inters_tris,
+                         const std::vector<uint> &in_tris, const std::vector<std::bitset<NBIT>> &in_labels,
+                         std::vector<uint> &edge_tris)
+{
+    for(auto t_id : inters_tris)
+    {
+        std::cout << t_id << std::endl;
+        std::cout << in_labels[t_id] << std::endl;
+        std::cout << ref_label << std::endl;
+
+        if(in_labels[t_id] == ref_label  && triContainsVert(t_id, ev0_id, in_tris) && triContainsVert(t_id, ev1_id, in_tris))
+            edge_tris.push_back(t_id);
+    }
+    std::cout << "edge_tris.size(): " << edge_tris.size() << std::endl;
 
     assert(edge_tris.size() == 2 && "problem in finding edge triangles"); // always true in closed and manifold meshes
 }
@@ -1818,14 +1873,13 @@ inline IntersInfo fast2DCheckIntersectionOnRayRationals(const RationalRay &ray, 
     bigrational or01_rat = cinolib::orient2d(&v0_rat[0], &v1_rat[0], &vq_rat[0]);
     bigrational or12_rat = cinolib::orient2d(&v1_rat[0], &v2_rat[0], &vq_rat[0]);
     bigrational or20_rat = cinolib::orient2d(&v2_rat[0], &v0_rat[0], &vq_rat[0]);
-    bigrational zero_rat = bigrational(0.0);
+    bigrational zero_rat = bigrational(0,0,0);
+
     std::cout << or01_rat << " " << or12_rat << " " << or20_rat << std::endl;
     //TODO: IMPORTANT!! If the orientation is not correct we need to invert the boolean test like >= to <=
-    if(((or01_rat > zero_rat || or01_rat.sgn() == 0) && (or12_rat > zero_rat || or12_rat.sgn() == 0) && (or20_rat > zero_rat || or20_rat.sgn() == 0)) ||
+    if(((or01_rat < zero_rat || or01_rat.sgn() == 0) && (or12_rat < zero_rat || or12_rat.sgn() == 0) && (or20_rat < zero_rat || or20_rat.sgn() == 0)) ||
        ((or01_rat > zero_rat || or01_rat.sgn() == 0) && (or12_rat > zero_rat || or12_rat.sgn() == 0) && (or20_rat > zero_rat || or20_rat.sgn() == 0)))
     {
-
-
         if(v0_rat[0] == vq_rat[0] && v0_rat[1] == vq_rat[1]) return INT_IN_V0;
         if(v1_rat[0] == vq_rat[0] && v1_rat[1] == vq_rat[1]) return INT_IN_V1;
         if(v2_rat[0] == vq_rat[0] && v2_rat[1] == vq_rat[1]) return INT_IN_V2;
