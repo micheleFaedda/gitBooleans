@@ -1034,14 +1034,11 @@ inline int genericPoint::maxComponentInTriangleNormal(double ov1x, double ov1y, 
 
 inline bigrational fabs(bigrational x)
 {
-   return (x < bigrational(0)) ? x.negation() : x;
+   return (x < bigrational(0,0,0)) ? x.negation() : x;
 }
 
 inline int maxComponentInTriangleNormal_filteredRationals(bigrational ov1x, bigrational ov1y, bigrational ov1z, bigrational ov2x, bigrational ov2y, bigrational ov2z, bigrational ov3x, bigrational ov3y, bigrational ov3z)
 {
-
-
-    /**New code**/
     bigrational e1x = ov2x - ov1x;
     bigrational e1y = ov2y - ov1y;
     bigrational e1z = ov2z - ov1z;
@@ -1072,8 +1069,6 @@ inline int maxComponentInTriangleNormal_filteredRationals(bigrational ov1x, bigr
     if (nvzc > nv) return 2;
     if (nv == nvxc) return 0;
     return 1;
-    /****/
-
 }
 /*
 inline int maxComponentInTriangleNormal_exact(double ov1x, double ov1y, double ov1z, double ov2x, double ov2y, double ov2z, double ov3x, double ov3y, double ov3z)

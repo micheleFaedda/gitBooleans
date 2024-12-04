@@ -25,6 +25,10 @@ int main(int argc, char **argv) {
     bool is_zero = comp > bigrational(0);
     std::cout << "Is zero: " << is_zero << std::endl;
 
+
+    bigrational Xmin_s1 = std::max(zero, zero);
+    std::cout << "Xmin_s1: " << Xmin_s1 << std::endl;
+
     //triangle t_id = 32
     const bigrational x0(3);
     const bigrational y0(0,0,0);
@@ -122,6 +126,11 @@ int main(int argc, char **argv) {
 
     bool intersection_t0 = segment_triangle_intersect_3d(&ray0[0], &ray1[0], &t0[0], &t1[0], &t2[0]);
     std::cout << "Intersection t0: " << intersection_t0 << std::endl;
+
+    bool intersection_segment_32 = segment_segment_intersect_3d(&ray0[0], &ray1[0], &t0[0], &t1[0]);
+    bool intersection_segment_2 = segment_segment_intersect_3d(&ray0[0], &ray1[0], &t0_2[0], &t1_2[0]);
+    std::cout << "Intersection segment 32: " << intersection_segment_32 << std::endl;
+    std::cout << "Intersection segment 2: " << intersection_segment_2 << std::endl;
 
     bool intersection_t1 = segment_triangle_intersect_3d(&ray0[0], &ray1[0], &t0_2[0], &t1_2[0], &t2_2[0]);
     std::cout << "Intersection t1: " << intersection_t1 << std::endl;

@@ -103,7 +103,7 @@ PointInSimplex point_in_triangle_2d(const bigrational * p,
     bigrational e0p_area = cinolib::orient2d(&t0[0], &t1[0], &p[0]);
     bigrational e1p_area = cinolib::orient2d(&t1[0], &t2[0], &p[0]);
     bigrational e2p_area = cinolib::orient2d(&t2[0], &t0[0], &p[0]);
-    
+
     bool hit = (((e0p_area > zero_rat || e0p_area.sgn() == 0) && (e1p_area > zero_rat || e1p_area.sgn() == 0) && (e2p_area > zero_rat || e2p_area.sgn() == 0)) ||
                 ((e0p_area < zero_rat || e0p_area.sgn() == 0) && (e1p_area > zero_rat || e1p_area.sgn() == 0) && (e2p_area > zero_rat || e2p_area.sgn() == 0)));
 

@@ -14,6 +14,7 @@
 using namespace cinolib;
 using namespace std;
 bool debug = true;
+bool debug_impl = false;
 bool flag_arrangement_debug = false;
 
 int main(int argc, char **argv)
@@ -30,9 +31,9 @@ int main(int argc, char **argv)
         file_path = argv[1];
         file_path2 = argv[2];
     }else{
-        file_path = "../data/A.obj";
+        file_path = "../data/mostro0.obj";
         //file_path = "../data/test/cube.obj";
-        file_path2 = "../data/C.obj";
+        file_path2 = "../data/mostro1.obj";
         //file_path2 = "../data/test/pyramid_transform.obj";
     }
 
@@ -72,7 +73,7 @@ int main(int argc, char **argv)
 
 
 
-    customBooleanPipeline(arr_verts, arr_in_tris, arr_out_tris, arr_in_labels, dupl_triangles, labels, patches, octree, op, bool_coords, bool_tris, bool_labels);
+    //customBooleanPipeline(arr_verts, arr_in_tris, arr_out_tris, arr_in_labels, dupl_triangles, labels, patches, octree, op, bool_coords, bool_tris, bool_labels);
 
     FastTrimesh tm(arr_verts, arr_out_tris, false);
 
@@ -94,7 +95,7 @@ int main(int argc, char **argv)
     //DIFF CODE
     std::vector<std::vector<std::vector<uint>>> parts_to_color;
     std::vector<int> num_tri_to_color_per_part;
-    uint num_parts = 4;
+    uint num_parts = debug_impl ? 4 : 3 ;
     //uint num_parts = patches.size();
     parts_to_color.resize(num_parts);
     num_tri_to_color_per_part.resize(num_parts);
@@ -119,65 +120,67 @@ int main(int argc, char **argv)
       */
        /*
         * ORIGINAL DIFF CODE
-        *
-        * for(uint t_id = 0 ; t_id < tm.numTris(); ++t_id){
-           if(labels.surface[t_id][1]){ //if the triangle belong to B
-               if(labels.surface[t_id].count() == 2 && labels.inside[t_id].count() == 0){
-                   //TODO: GRAY PARTS
-                   tm.setTriInfo(t_id, 1);
-                   num_tris_in_final_result++;
-                   num_tri_to_color_per_part[0]++;
+        */
+       if (!debug_impl){
+             for(uint t_id = 0 ; t_id < tm.numTris(); ++t_id){
+               if(labels.surface[t_id][1]){ //if the triangle belong to B
+                   if(labels.surface[t_id].count() == 2 && labels.inside[t_id].count() == 0){
+                       //TODO: GRAY PARTS
+                       tm.setTriInfo(t_id, 1);
+                       num_tris_in_final_result++;
+                       num_tri_to_color_per_part[0]++;
 
-               }else if(labels.inside[t_id][0]){ //parts of B inside A
-                   //TODO: RED PARTS
-                   tm.setTriInfo(t_id, 1);
-                   num_tris_in_final_result++;
-                   num_tri_to_color_per_part[1]++;
+                   }else if(labels.inside[t_id][0]){ //parts of B inside A
+                       //TODO: RED PARTS
+                       tm.setTriInfo(t_id, 1);
+                       num_tris_in_final_result++;
+                       num_tri_to_color_per_part[1]++;
 
-               }else if(!labels.inside[t_id][0]){
-                   //TODO: GREEN PARTS
-                   tm.setTriInfo(t_id, 1);
-                   num_tris_in_final_result++;
-                   num_tri_to_color_per_part[2]++;
+                   }else if(!labels.inside[t_id][0]){
+                       //TODO: GREEN PARTS
+                       tm.setTriInfo(t_id, 1);
+                       num_tris_in_final_result++;
+                       num_tri_to_color_per_part[2]++;
+                   }
                }
            }
-       }*/
+       }
 
 
        /**
         * DIFF CODE FOR DEBUGGING
         *
         * **/
+    if (debug_impl) {
+        for(uint t_id = 0 ; t_id < tm.numTris(); ++t_id){
+            if(labels.surface[t_id][1]){ //if the triangle belong to B
+                if(labels.surface[t_id].count() == 2 && labels.inside[t_id].count() == 0){
+                    //TODO: GRAY PARTS
+                    tm.setTriInfo(t_id, 1);
+                    num_tris_in_final_result++;
+                    num_tri_to_color_per_part[0]++;
 
-    for(uint t_id = 0 ; t_id < tm.numTris(); ++t_id){
-        if(labels.surface[t_id][1]){ //if the triangle belong to B
-            if(labels.surface[t_id].count() == 2 && labels.inside[t_id].count() == 0){
-                //TODO: GRAY PARTS
+                }else if(labels.inside[t_id][0]){ //parts of B inside A
+                    //TODO: RED PARTS
+                    tm.setTriInfo(t_id, 1);
+                    num_tris_in_final_result++;
+                    num_tri_to_color_per_part[1]++;
+
+                }else if(!labels.inside[t_id][0]){
+                    //TODO: GREEN PARTS
+                    tm.setTriInfo(t_id, 1);
+                    num_tris_in_final_result++;
+                    num_tri_to_color_per_part[2]++;
+                }
+            }
+
+            if(labels.surface[t_id][0]){
                 tm.setTriInfo(t_id, 1);
                 num_tris_in_final_result++;
-                num_tri_to_color_per_part[0]++;
-
-            }else if(labels.inside[t_id][0]){ //parts of B inside A
-                //TODO: RED PARTS
-                tm.setTriInfo(t_id, 1);
-                num_tris_in_final_result++;
-                num_tri_to_color_per_part[1]++;
-
-            }else if(!labels.inside[t_id][0]){
-                //TODO: GREEN PARTS
-                tm.setTriInfo(t_id, 1);
-                num_tris_in_final_result++;
-                num_tri_to_color_per_part[2]++;
+                num_tri_to_color_per_part[3]++;
             }
         }
-
-        if(labels.surface[t_id][0]){
-            tm.setTriInfo(t_id, 1);
-            num_tris_in_final_result++;
-            num_tri_to_color_per_part[3]++;
-        }
     }
-
 
     /******************************************************************************************************/
 
@@ -243,7 +246,7 @@ int main(int argc, char **argv)
             }
         }
 
-        if(labels.surface[t_id][0]){
+        if(labels.surface[t_id][0] && debug_impl){
             parts_to_color[3].push_back(vert_to_color);
         }
 
@@ -289,7 +292,7 @@ int main(int argc, char **argv)
                 m.poly_data(t_id).color = Color(201/255.f,79/255.f,86/255.f);
             } else if(i == 2){
                 m.poly_data(t_id).color = Color(122/255.f,239/255.f,72/255.f);
-            } else{
+            } else if (debug_impl && i==3){
                 m.poly_data(t_id).color = Color(255/255.f,255/255.f,255/255.f,0.9f);
             }
         }

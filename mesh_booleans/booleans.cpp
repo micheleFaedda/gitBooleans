@@ -674,22 +674,6 @@ inline void findRayEndpointsCustom(const FastTrimesh &tm, const phmap::flat_hash
         //if(!genericPoint::misaligned(tv0_rat, tv1_rat, tv2_rat)) continue;
         int dir = maxComponentInTriangleNormalRationals(x0_rat, y0_rat, z0_rat, x1_rat, y1_rat, z1_rat, x2_rat, y2_rat, z2_rat);
 
-
-       /* if(x0_rat == bigrational(0) && x1_rat == bigrational(0) && x2_rat == bigrational(0)){
-            std::cout << "Triangle with all x = 0" << std::endl;
-            std::exit(EXIT_FAILURE);
-        }
-
-        if(y0_rat == bigrational(0) && y1_rat == bigrational(0) && y2_rat == bigrational(0)){
-            std::cout << "Triangle with all y = 0" << std::endl;
-            std::exit(EXIT_FAILURE);
-        }
-
-        if(z0_rat == bigrational(0) && z1_rat == bigrational(0) && z2_rat == bigrational(0)){
-            std::cout << "Triangle with all z = 0" << std::endl;
-            std::exit(EXIT_FAILURE);
-        }*/
-
         if(dir == 0) // dir = X
         {
             rational_ray.v0 = {(x0_rat + x1_rat + x2_rat) / bigrational(3.0),
@@ -716,7 +700,7 @@ inline void findRayEndpointsCustom(const FastTrimesh &tm, const phmap::flat_hash
                                (y0_rat + y1_rat + y2_rat) / bigrational(3.0),
                                (z0_rat + z1_rat + z2_rat) / bigrational(3.0)};
 
-            rational_ray.v1 = {rational_ray.v0[0], rational_ray.v1[1], bigrational(max_coords.z())};
+            rational_ray.v1 = {rational_ray.v0[0], rational_ray.v0[1], bigrational(max_coords.z())};
             rational_ray.dir = 'Z';
         }else{
             std::cout<<"Error in direction"<<std::endl;
@@ -751,8 +735,8 @@ inline void findRayEndpointsCustom(const FastTrimesh &tm, const phmap::flat_hash
         //std::cout << "Direction: " << rational_ray.dir << std::endl;
 
 
-        if((e0_rat > bigrational(0.0) && e1_rat > bigrational(0.0) && e2_rat > bigrational(0.0)) ||
-           (e0_rat < bigrational(0.0) && e1_rat < bigrational(0.0) && e2_rat < bigrational(0.0))){
+        if((e0_rat > bigrational(0,0,0) && e1_rat > bigrational(0,0,0) && e2_rat > bigrational(0,0,0)) ||
+           (e0_rat < bigrational(0,0,0) && e1_rat < bigrational(0,0,0) && e2_rat < bigrational(0,0,0))){
             rational_ray.tv[0] = static_cast<int>(tm.triVertID(t_id, 0));
             rational_ray.tv[1] = static_cast<int>(tm.triVertID(t_id, 1));
             rational_ray.tv[2] = static_cast<int>(tm.triVertID(t_id, 2));
@@ -863,24 +847,7 @@ inline void findIntersectionsAlongRayRationals(const FastTrimesh &tm, const std:
             std::vector<bigrational> tv2 = {x2, y2, z2};
 
             bool intersection = segment_triangle_intersect_3d(&ray_v0[0], &ray_v1[0], &tv0[0], &tv1[0], &tv2[0]);
-            if(t_id == 32 || t_id == 2){
-                //print the coords of the triangle
-                std::cout << "Triangle coords  " << t_id << ": " << std::endl;
-                std::cout << "v0: " << tv0[0] << " " << tv0[1] << " " << tv0[2] << std::endl;
-                std::cout << "v1: " << tv1[0] << " " << tv1[1] << " " << tv1[2] << std::endl;
-                std::cout << "v2: " << tv2[0] << " " << tv2[1] << " " << tv2[2] << std::endl;
 
-                //print the coords of the ray
-                std::cout << "Ray coords: " << std::endl;
-                std::cout << "v0: " << ray_v0[0] << " " << ray_v0[1] << " " << ray_v0[2] << std::endl;
-                std::cout << "v1: " << ray_v1[0] << " " << ray_v1[1] << " " << ray_v1[2] << std::endl;
-
-                //print the dir
-                std::cout << "Direction: " << rational_ray.dir << std::endl;
-
-
-                std::cout<<"Intersection : " << intersection << std::endl;
-            }
             //I check if the ray intersects the triangle
             if (segment_triangle_intersect_3d(&ray_v0[0], &ray_v1[0], &tv0[0], &tv1[0], &tv2[0])) {
                 tmp_inters.insert(t_id);
@@ -948,7 +915,7 @@ inline void computeInsideOut(const FastTrimesh &tm, const std::vector<phmap::fla
 
         phmap::flat_hash_set<uint> tmp_inters;
 
-        std::cout << "rational_ray.tv[0]: " << rational_ray.tv[0] <<  std::endl;
+        std::cout << "rational_ray.tv[0]: " << rational_ray.tv[0]  <<  std::endl;
         if(rational_ray.tv[0] != -1) {//is defined
 
             std::cout << "Direction:  " << rational_ray.dir <<  std::endl;
@@ -956,7 +923,6 @@ inline void computeInsideOut(const FastTrimesh &tm, const std::vector<phmap::fla
             std::vector<uint> inters_tris_rat;
 
             findIntersectionsAlongRayRationals(tm, patches, octree, in_verts, in_labels, labels, rational_ray, p_id, tmp_inters, inter_rat);
-            std::cout<< "tmp_inters size: " << tmp_inters.size() << std::endl;
 
             //pruneIntersectionPart
             phmap::flat_hash_set<uint> visited_tri;
@@ -1011,9 +977,13 @@ inline void computeInsideOut(const FastTrimesh &tm, const std::vector<phmap::fla
                 const std::vector<bigrational> tv0_exact = {tv0_x, tv0_y, tv0_z};
                 const std::vector<bigrational> tv1_exact = {tv1_x, tv1_y, tv1_z};
                 const std::vector<bigrational> tv2_exact = {tv2_x, tv2_y, tv2_z};
+
                 std::cout <<"t_id_int before fast2DIntersectionOnRayRationals: " << t_id_int << std::endl;
+
                 IntersInfo ii = fast2DCheckIntersectionOnRayRationals(rational_ray, tv0_exact, tv1_exact, tv2_exact);
+
                 std::cout<< "ii: " << ii << std::endl;
+
                 if (ii == DISCARD){
                     std::cout<<"DISCARD" << std::endl;
                      continue;}
@@ -2162,7 +2132,7 @@ inline uint checkTriangleOrientationRationals(const RationalRay &ray, const std:
     /* in res we have sign(area(v0, v1, v2, ray.second))
      * if the area is >0 the ray is doing INSIDE -> OUTSIDE, so the patch is INSIDE
      * else the ray is doing OUTSIDE -> INSIDE so the patch is OUTSIDE */
-    return (res < bigrational(0)) ? 1 : 0;
+    return (res < bigrational(0,0,0)) ? 1 : 0;
 }
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
