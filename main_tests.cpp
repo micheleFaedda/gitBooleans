@@ -11,11 +11,12 @@
 #include <cinolib/meshes/meshes.h>
 #include <cinolib/gl/glcanvas.h>
 #include <cinolib/gl/surface_mesh_controls.h>
+#include <cinolib/drawable_triangle_soup.h>
 using namespace cinolib;
 
 
 int main(int argc, char **argv) {
-    bigrational zero = bigrational(0,0,0);
+    /*bigrational zero = bigrational(0,0,0);
 
     const uint64_t one = 412425389222715451;
     const uint64_t two = 316268131472977041;
@@ -28,7 +29,11 @@ int main(int argc, char **argv) {
 
     bigrational Xmin_s1 = std::max(zero, zero);
     std::cout << "Xmin_s1: " << Xmin_s1 << std::endl;
+*/
+    std::vector <uint> faces;
+    std::vector <double> coords;
 
+    /*
     //triangle t_id = 32
     const bigrational x0(3);
     const bigrational y0(0,0,0);
@@ -49,6 +54,8 @@ int main(int argc, char **argv) {
     const bigrational x0_ray (17826409253836285,9007199254740992, 1);
     const bigrational y0_ray (2,3,1);
     const bigrational z0_ray (36017237179440431,54043195528445952,1);
+
+    const double x0_d = -7.70753e+09;
 
     std::cout << "x0_ray: " << x0_ray << std::endl;
 
@@ -73,7 +80,7 @@ int main(int argc, char **argv) {
     coords.push_back(y2.get_d());
     coords.push_back(z2.get_d());
 
-    std::vector <uint> faces;
+
     faces.push_back(0);
     faces.push_back(1);
     faces.push_back(2);
@@ -123,7 +130,6 @@ int main(int argc, char **argv) {
     faces.push_back(4);
     faces.push_back(5);
 
-
     bool intersection_t0 = segment_triangle_intersect_3d(&ray0[0], &ray1[0], &t0[0], &t1[0], &t2[0]);
     std::cout << "Intersection t0: " << intersection_t0 << std::endl;
 
@@ -134,25 +140,145 @@ int main(int argc, char **argv) {
 
     bool intersection_t1 = segment_triangle_intersect_3d(&ray0[0], &ray1[0], &t0_2[0], &t1_2[0], &t2_2[0]);
     std::cout << "Intersection t1: " << intersection_t1 << std::endl;
+*/
+    //triangle t_id = 1863
+    const double x0_t0 = -5.58796e+09;
+    const double y0_t0 = -6.51274e+09;
+    const double z0_t0 = 7.42589e+09;
 
+    const double x1_t0 = -5.1519e+09;
+    const double y1_t0 = -6.67568e+09;
+    const double z1_t0 = 6.9899e+09;
+
+    const double x2_t0 = -5.58113e+09;
+    const double y2_t0 = -6.51105e+09 ;
+    const double z2_t0 = 7.42747e+09;
+
+    const std::vector<double> t0 = {x0_t0, y0_t0, z0_t0};
+    const std::vector<double> t1 = {x1_t0, y1_t0, z1_t0};
+    const std::vector<double> t2 = {x2_t0, y2_t0, z2_t0};
+
+    //triangle t_id = 2148
+    const double x0_t1 = -5.1519e+09;
+    const double y0_t1 = -6.67568e+09;
+    const double z0_t1 = 6.9899e+09;
+
+    const double x1_t1 = -5.58113e+09;
+    const double y1_t1 = -6.51105e+09;
+    const double z1_t1 = 7.42747e+09;
+
+    const double x2_t1 = -5.58796e+09;
+    const double y2_t1 = -6.51274e+09 ;
+    const double z2_t1 = 7.42589e+09;
+
+    const std::vector<double> t0_2 = {x0_t1, y0_t1, z0_t1};
+    const std::vector<double> t1_2 = {x1_t1, y1_t1, z1_t1};
+    const std::vector<double> t2_2 = {x2_t1, y2_t1, z2_t1};
+
+    //triangle t_id = 2144
+    const double x0_t2 = -6.05799e+09 ;
+    const double y0_t2 =  6.32808e+09;
+    const double z0_t2 =  7.06737e+09;
+
+    const double x1_t2 = -6.40978e+09;
+    const double y1_t2 = 6.04367e+09;
+    const double z1_t2 = 7.90116e+09;
+
+    const double x2_t2 = -5.12595e+09;
+    const double y2_t2 = 6.50793e+09;
+    const double z2_t2 = 7.17377e+09;
+
+    const std::vector<double> t0_3 = {x0_t2, y0_t2, z0_t2};
+    const std::vector<double> t1_3 = {x1_t2, y1_t2, z1_t2};
+    const std::vector<double> t2_3 = {x2_t2, y2_t2, z2_t2};
+
+
+    //ray
+    const double x0_ray = -5.44033e+09;
+    const double y0_ray = 6.56649e+09;
+    const double z0_ray = 7.28109e+09;
+
+    const double x1_ray = -5.44033e+09;
+    const double y1_ray = 1.03925e+10;
+    const double z1_ray = 7.28109e+09;
+
+    const std::vector<double> ray0 = {x0_ray, y0_ray, z0_ray};
+    const std::vector<double> ray1 = {x1_ray, y1_ray, z1_ray};
+
+
+    int n_triangles = 3;
+
+    faces.push_back(0);
+    faces.push_back(1);
+    faces.push_back(2);
+
+    faces.push_back(3);
+    faces.push_back(4);
+    faces.push_back(5);
+
+    faces.push_back(6);
+    faces.push_back(7);
+    faces.push_back(8);
+
+
+
+
+
+
+    coords.push_back(x0_t0);
+    coords.push_back(y0_t0);
+    coords.push_back(z0_t0);
+
+    coords.push_back(x1_t0);
+    coords.push_back(y1_t0);
+    coords.push_back(z1_t0);
+
+    coords.push_back(x2_t0);
+    coords.push_back(y2_t0);
+    coords.push_back(z2_t0);
+
+    coords.push_back(x0_t1);
+    coords.push_back(y0_t1);
+    coords.push_back(z0_t1);
+
+    coords.push_back(x1_t1);
+    coords.push_back(y1_t1);
+    coords.push_back(z1_t1);
+
+    coords.push_back(x2_t1);
+    coords.push_back(y2_t1);
+    coords.push_back(z2_t1);
+
+    coords.push_back(x0_t2);
+    coords.push_back(y0_t2);
+    coords.push_back(z0_t2);
+
+    coords.push_back(x1_t2);
+    coords.push_back(y1_t2);
+    coords.push_back(z1_t2);
+
+    coords.push_back(x2_t2);
+    coords.push_back(y2_t2);
+    coords.push_back(z2_t2);
 
     GLcanvas gui;
     DrawableTrimesh<>m(coords, faces);
-
+    m.scale(100000);
+    //cinolib::DrawableTriangleSoup soup(coords, faces, Color::RED());
 
 
     SurfaceMeshControls<DrawableTrimesh<>> controls(&m, &gui, "test");
 
     gui.push(&m);
     gui.push(&controls);
-
+    //gui.push(&soup);
 
     m.updateGL();
 
     DrawableSegmentSoup segment;
     Color customColor = Color::BLUE();
 
-    segment.push_seg(vec3d(ray_coords[0], ray_coords[1], ray_coords[2]), vec3d(ray_coords[3], ray_coords[4], ray_coords[5]), customColor);
+    segment.push_seg(vec3d(ray0[0], ray0[1], ray0[2]), vec3d(ray1[0], ray1[1], ray1[2]), customColor);
     segment.draw(100);
     gui.push(&segment);
 

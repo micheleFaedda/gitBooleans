@@ -14,7 +14,7 @@
 using namespace cinolib;
 using namespace std;
 bool debug = true;
-bool debug_impl = false;
+bool debug_impl = true;
 bool flag_arrangement_debug = false;
 
 int main(int argc, char **argv)
@@ -31,9 +31,9 @@ int main(int argc, char **argv)
         file_path = argv[1];
         file_path2 = argv[2];
     }else{
-        file_path = "../data/mostro0.obj";
+        file_path = "../data/A.obj";
         //file_path = "../data/test/cube.obj";
-        file_path2 = "../data/mostro1.obj";
+        file_path2 = "../data/C_edge.obj";
         //file_path2 = "../data/test/pyramid_transform.obj";
     }
 

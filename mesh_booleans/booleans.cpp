@@ -40,7 +40,7 @@
 #include <tbb/tbb.h>
 #include <cinolib/rationals.h>
 #include <intersect_point_rationals.h>
-
+#include <ranges> // For std::ranges::contains
 inline void customBooleanPipeline(std::vector<genericPoint*>& arr_verts, std::vector<uint>& arr_in_tris,
                                   std::vector<uint>& arr_out_tris, std::vector<std::bitset<NBIT>>& arr_in_labels,
                                   std::vector<DuplTriInfo>& dupl_triangles, Labels& labels,
@@ -171,9 +171,9 @@ inline void customArrangementPipeline(const std::vector<double> &in_coords, cons
     triangulation(ts, arena, g, arr_out_tris, labels.surface);
 
     //print labels.surface to check if it is correct
-    for (int i = 0; i < labels.surface.size(); i++){
+   /*for (int i = 0; i < labels.surface.size(); i++){
          std::cout <<"Triangle "<< i << " labels.surface: " <<labels.surface[i] << std::endl;
-    }
+    }*/
 
 
     ts.appendJollyPoints();
@@ -747,6 +747,20 @@ inline void findRayEndpointsCustom(const FastTrimesh &tm, const phmap::flat_hash
             std::cout << "The value of orient3d for the first edge is: " << e0_rat << std::endl;
             std::cout << "The value of orient3d for the second edge is: " << e1_rat << std::endl;
             std::cout << "The value of orient3d for the third edge is: " << e2_rat << std::endl;
+            std::cout << "Direction : " << rational_ray.dir << std::endl;
+
+            //print the coords of the triangle
+            std::cout << "Triangle coords: " << std::endl;
+            std::cout << "v0: " << tv0_rat[0] << " " << tv0_rat[1] << " " << tv0_rat[2] << " In double: " << tv0_rat[0].get_d() << " " << tv0_rat[1].get_d() << " " << tv0_rat[2].get_d() << std::endl;
+            std::cout << "v1: " << tv1_rat[0] << " " << tv1_rat[1] << " " << tv1_rat[2] << " In double: " << tv1_rat[0].get_d() << " " << tv1_rat[1].get_d() << " " << tv1_rat[2].get_d() << std::endl;
+            std::cout << "v2: " << tv2_rat[0] << " " << tv2_rat[1] << " " << tv2_rat[2] << " In double: " << tv2_rat[0].get_d() << " " << tv2_rat[1].get_d() << " " << tv2_rat[2].get_d() << std::endl;
+
+            //print the coords of the ray
+            std::cout << "Ray coords: " << std::endl;
+            std::cout << "v0: " << rational_ray.v0[0] << " " << rational_ray.v0[1] << " " << rational_ray.v0[2] << " In double: "<< rational_ray.v0[0].get_d() <<" " << rational_ray.v0[1].get_d() << " " << rational_ray.v0[2].get_d() << std::endl;
+            std::cout << "v1: " << rational_ray.v1[0] << " " << rational_ray.v1[1] << " " << rational_ray.v1[2] << " In double: "<< rational_ray.v1[0].get_d() <<" " << rational_ray.v1[1].get_d() << " " << rational_ray.v1[2].get_d() << std::endl;
+
+
             std::exit(EXIT_FAILURE);
         }
 
@@ -865,6 +879,11 @@ inline void findIntersectionsAlongRayRationals(const FastTrimesh &tm, const std:
                         break;
                     }
                 }
+                if(t_id ==11){
+                    std::cout << "Triangle 11: " << std::endl;
+                    std::cout << "Intersection point coordinates: " << p_int[0].get_d() << " " << p_int[1].get_d() << " " << p_int[2].get_d() << std::endl;
+                    std::cout << "Intersection point coordinates: " << p_int[0] << " " << p_int[1] << " " << p_int[2] << std::endl;
+                }
                 IntersectionPointRationals p_int_rat(p_int[0], p_int[1], p_int[2], t_id, p_id_other);
                 inter_rat.push_back(p_int_rat);
             }
@@ -883,12 +902,23 @@ inline void computeInsideOut(const FastTrimesh &tm, const std::vector<phmap::fla
                              const std::vector<genericPoint *> &in_verts, const std::vector<uint> &in_tris,
                              const std::vector<std::bitset<NBIT>> &in_labels, const cinolib::vec3d &max_coords, Labels &labels)
 {
+
+    // print the vertex 15 of the mesh
+    bigrational x, y, z;
+    bigrational x1, y1, z1;
+    in_verts[15]->getExactXYZCoordinates(x, y, z);
+    in_verts[14]->getExactXYZCoordinates(x1, y1, z1);
+    std::cout << "Vertex 15 of the mesh: " << tm.vert(15)->toExplicit3D().X() << " " << tm.vert(15)->toExplicit3D().Y() << " " << tm.vert(15)->toExplicit3D().Z() << std::endl;
+    std::cout << "Vertex 15 of the mesh: " << x<< " " << y << " " << z << std::endl;
+    std::cout << "Vertex 14 of the mesh: " << tm.vert(14)->toExplicit3D().X() << " " << tm.vert(14)->toExplicit3D().Y() << " " << tm.vert(14)->toExplicit3D().Z() << std::endl;
+    std::cout << "Vertex 14 of the mesh: " << x1<< " " << y1 << " " << z1 << std::endl;
+
     tbb::spin_mutex mutex;
     //tbb::parallel_for((uint)0, (uint)patches.size(), [&](uint p_id)
 
     std::bitset <NBIT> labels_patch [patches.size()];
 
-    for (uint i = 0; i < patches.size(); i++) {
+   /* for (uint i = 0; i < patches.size(); i++) {
         for(uint t_id : patches[i]) {
                 labels_patch[i] = labels.surface.at(t_id);
                 break;
@@ -900,7 +930,7 @@ inline void computeInsideOut(const FastTrimesh &tm, const std::vector<phmap::fla
         for (uint t_id : patches[pp_id])
             std::cout << t_id << " ";
         std::cout << std::endl;
-    }
+    }*/
 
     for(uint p_id = 0; p_id < patches.size(); p_id++) //For each patch
     {
@@ -915,33 +945,36 @@ inline void computeInsideOut(const FastTrimesh &tm, const std::vector<phmap::fla
 
         phmap::flat_hash_set<uint> tmp_inters;
 
-        std::cout << "rational_ray.tv[0]: " << rational_ray.tv[0]  <<  std::endl;
+        //std::cout << "rational_ray.tv[0]: " << rational_ray.tv[0]  <<  std::endl;
         if(rational_ray.tv[0] != -1) {//is defined
 
             std::cout << "Direction:  " << rational_ray.dir <<  std::endl;
             std::vector<IntersectionPointRationals> inter_rat;
-            std::vector<uint> inters_tris_rat;
 
             findIntersectionsAlongRayRationals(tm, patches, octree, in_verts, in_labels, labels, rational_ray, p_id, tmp_inters, inter_rat);
+            std::vector<uint> inters_tris_rat;
 
             //pruneIntersectionPart
-            phmap::flat_hash_set<uint> visited_tri;
+            /************PRUNE INTERSECTIONS ***********/
+
+            pruneIntersectionsAndSortAlongRayRationals(rational_ray, tm, in_verts, in_tris, in_labels, tmp_inters, patch_surface_label, inter_rat, inters_tris_rat,labels);
+           /* phmap::flat_hash_set<uint> visited_tri;
             visited_tri.reserve(inter_rat.size() / 6);
             std::pair<phmap::flat_hash_set<uint>::iterator, bool> ins;
 
 
             for (uint t_id_int: tmp_inters) {
-                uint t_id_app = t_id_int;
-                //if (visited_tri.contains(t_id_int)) continue; // triangle already analyzed
-
+                //uint t_id_app = t_id_int;
                 ins = visited_tri.insert(t_id_int);
 
                 if (!ins.second) continue; // triangle already analyzed or in the one ring of a vert or in the adj of an edge
+*/
+                /*int t_id_father = -1;
 
-               if (t_id_int >= in_labels.size()){
-                    uint patch_id= IntersectionPointRationals::findPatchIdByTriId(inter_rat, t_id_int);
-                    phmap::flat_hash_set<uint> patch_app = patches.at(patch_id);
-                    uint t_id_father;
+
+                if (t_id_int >= in_labels.size()){
+                   uint patch_id= IntersectionPointRationals::findPatchIdByTriId(inter_rat, t_id_int);
+                   phmap::flat_hash_set<uint> patch_app = patches.at(patch_id);
                     for(uint t_id : patch_app){
                         if (t_id < in_labels.size()){
                             t_id_father = t_id;
@@ -949,18 +982,18 @@ inline void computeInsideOut(const FastTrimesh &tm, const std::vector<phmap::fla
                         }
                     }
                     t_id_int = t_id_father;
-                }
-                const std::bitset<NBIT> tested_tri_label = labels.surface.at(t_id_app);
-                uint uint_tri_label = bitsetToUintCustom(tested_tri_label);
-                t_id_int = t_id_app;
+                }*/
+
+
+               /* const std::bitset<NBIT> tested_tri_label = labels.surface.at(t_id_int);
+                uint uint_tri_label = bitsetToUint(tested_tri_label);
+                //t_id_int = t_id_app;
 
                 if (patch_surface_label[uint_tri_label]) continue; // <-- triangle of the same label of the tested patch
 
-
                 bigrational tv0_x, tv0_y, tv0_z,
-                        tv1_x, tv1_y, tv1_z,
-                        tv2_x, tv2_y, tv2_z;
-
+                            tv1_x, tv1_y, tv1_z,
+                            tv2_x, tv2_y, tv2_z;
 
                 const uint tv[3] = {tm.triVertID(t_id_int, 0), tm.triVertID(t_id_int, 1), tm.triVertID(t_id_int, 2)};
 
@@ -978,7 +1011,7 @@ inline void computeInsideOut(const FastTrimesh &tm, const std::vector<phmap::fla
                 const std::vector<bigrational> tv1_exact = {tv1_x, tv1_y, tv1_z};
                 const std::vector<bigrational> tv2_exact = {tv2_x, tv2_y, tv2_z};
 
-                std::cout <<"t_id_int before fast2DIntersectionOnRayRationals: " << t_id_int << std::endl;
+                //std::cout <<"t_id_int before fast2DIntersectionOnRayRationals: " << t_id_int << std::endl;
 
                 IntersInfo ii = fast2DCheckIntersectionOnRayRationals(rational_ray, tv0_exact, tv1_exact, tv2_exact);
 
@@ -993,6 +1026,7 @@ inline void computeInsideOut(const FastTrimesh &tm, const std::vector<phmap::fla
 
                 if (ii == INT_IN_TRI) {
                     std::cout << "INT_IN_TRI" << " t_id-> "<<t_id_int<<std::endl;
+
                     inters_tris_rat.push_back(t_id_int);
 
                 } else if (ii == INT_IN_V0 || ii == INT_IN_V1 || ii == INT_IN_V2) {
@@ -1014,6 +1048,7 @@ inline void computeInsideOut(const FastTrimesh &tm, const std::vector<phmap::fla
 
                     if (winner_tri != -1)
                         inters_tris_rat.push_back(winner_tri);
+
                 } else if (ii == INT_IN_EDGE01 || ii == INT_IN_EDGE12 || ii == INT_IN_EDGE20) {
                     std::cout << "INT_IN_EDGE" << std::endl;
 
@@ -1035,15 +1070,7 @@ inline void computeInsideOut(const FastTrimesh &tm, const std::vector<phmap::fla
 
                    std::vector<uint> edge_tris;
 
-                    /**Qua dentro entrano:
-                     * _vertice 1 dell'edge
-                     * _vertice 2 dell'edge
-                     * _label di appartenenza del triangolo
-                     * _lista degli id dei triangoli interesecati dal raggio
-                     * _lista degli id dei triangoli in ingresso
-                     * _lista delle label dei triangoli in ingresso
-                     * _lista degli edge dei triangoli che verranno interesecati*/
-                    /*findEdgeTrisCustom(ev0_id, ev1_id, tested_tri_label, tmp_inters, in_tris, in_labels, edge_tris);
+                    findEdgeTrisCustom(ev0_id, ev1_id, tested_tri_label, tmp_inters, in_tris, in_labels, edge_tris);
 
                     for (uint t: edge_tris)
                         visited_tri.insert(t); // mark all the one ring as visited
@@ -1053,8 +1080,20 @@ inline void computeInsideOut(const FastTrimesh &tm, const std::vector<phmap::fla
 
                     if (winner_tri != -1)
                         inters_tris_rat.push_back(winner_tri);
-                    */
+
                 }
+
+                for (auto &t_id_tmp : inters_tris_rat) {
+                    bool found = false;
+                    for (auto &p_int: inter_rat) {
+                        if (t_id_tmp == p_int.getTriId()) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    assert(found && "The triangle is not in the intersection points");
+                }
+
                 std::cout << "inter_rat size: " << inter_rat.size() << std::endl;
                 if (rational_ray.dir == 'X')
                     //sort the inter_rat along the x coordinate
@@ -1072,33 +1111,36 @@ inline void computeInsideOut(const FastTrimesh &tm, const std::vector<phmap::fla
                          [](const IntersectionPointRationals &a, const IntersectionPointRationals &b) {
                              return a.lessThanZ(b);
                          });
-
-
+*/
+                /*********ANALYZE INTERSECITONS **/
                 //analyse the sorted intersection points
                 std::bitset<NBIT> patch_inner_label;
-                std::bitset<NBIT> visited_labels;
+                analyzeSortedIntersectionsRationals(rational_ray, tm, in_verts, inter_rat, patch_inner_label, labels);
+               /* std::bitset<NBIT> visited_labels;
 
 
                 //copy the tri_id into inter_rat_tris_ordered from inter_rat
                 std::vector<uint> inter_rat_tris_ordered;
-                inter_rat.reserve(inter_rat.size());
+
                 for (auto &p: inter_rat) {
                     inter_rat_tris_ordered.push_back(p.getTriId());
                 }
+                bool print_ray = true;
+                std::vector<uint> list_t_id;
 
                 for (int i = 0; i < inter_rat_tris_ordered.size(); i++) {
 
                     uint t_id = inter_rat_tris_ordered[i];
-                    uint t_label = bitsetToUintCustom(labels.surface.at(t_id));
+                    uint t_label = bitsetToUint(labels.surface.at(t_id));
 
-                    if (visited_labels[t_label]) continue;
+                    //if (visited_labels[t_label]) continue;
 
                     for (auto &p: inter_rat) {
                         if (p.getTriId() == t_id) {
                             //get the three points of the triangle
                             bigrational x0_aux, x1_aux, x2_aux, y0_aux, y1_aux, y2_aux, z0_aux, z1_aux, z2_aux;
 
-                            const uint tv_aux[3] = {tm.triVertID(t_id, 0), tm.triVertID(t_id, 1), tm.triVertID(t_id, 2)};
+                            uint tv_aux[3] = {tm.triVertID(t_id, 0), tm.triVertID(t_id, 1), tm.triVertID(t_id, 2)};
 
                             in_verts[tv_aux[0]]->getExactXYZCoordinates(x0_aux, y0_aux, z0_aux);
                             in_verts[tv_aux[1]]->getExactXYZCoordinates(x1_aux, y1_aux, z1_aux);
@@ -1112,19 +1154,26 @@ inline void computeInsideOut(const FastTrimesh &tm, const std::vector<phmap::fla
                             std::vector<bigrational> tv1_aux = {x1_aux, y1_aux, z1_aux};
                             std::vector<bigrational> tv2_aux = {x2_aux, y2_aux, z2_aux};
 
+
+                            //printInfoTriangleRationals(rational_ray, tv0_aux, tv1_aux, tv2_aux, tv_aux, t_id, print_ray);
+
+
                             if (checkTriangleOrientationRationals(rational_ray, tv0_aux, tv1_aux, tv2_aux) == 1) {
                                 patch_inner_label[t_label] = true;
                             }
                             visited_labels[t_label] = true;
                         }
                     }
-                }
-                for (uint t_id_app: patch_tris){
+                }*/
+
+                propagateInnerLabelsOnPatch(patch_tris, patch_inner_label, labels);
+
+                /*for (uint t_id_app: patch_tris){
                     labels.inside[t_id_app] = patch_inner_label;
                     std::cout<<"label.inside["<< t_id_app <<"]: "<< patch_inner_label << std::endl;
-                }
+                }*/
 
-            }
+            //}
         }else {
 
             cinolib::AABB rayAABB(cinolib::vec3d(ray.v0.X(), ray.v0.Y(), ray.v0.Z()),
@@ -1238,6 +1287,173 @@ inline void pruneIntersectionsAndSortAlongRay(const Ray &ray, const std::vector<
         sortIntersectedTrisAlongZ(ray, in_verts, in_tris, inters_tris);
 }
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+inline void pruneIntersectionsAndSortAlongRayRationals(const RationalRay &ray, const FastTrimesh &tm, const std::vector<genericPoint*> &in_verts,
+                                                       const std::vector<uint> &in_tris, const std::vector<std::bitset<NBIT>> &in_labels,
+                                                       const phmap::flat_hash_set<uint> &tmp_inters, const std::bitset<NBIT> &patch_surface_label,
+                                                       std::vector<IntersectionPointRationals> &inter_rat, std::vector<uint> &inters_tris_rat, Labels &labels){
+
+    phmap::flat_hash_set<uint> visited_tri;
+    visited_tri.reserve(inter_rat.size() / 6);
+    std::pair<phmap::flat_hash_set<uint>::iterator, bool> ins;
+
+
+    for (uint t_id_int: tmp_inters) {
+        //uint t_id_app = t_id_int;
+        ins = visited_tri.insert(t_id_int);
+
+        if (!ins.second) continue; // triangle already analyzed or in the one ring of a vert or in the adj of an edge
+
+        /*int t_id_father = -1;
+
+
+        if (t_id_int >= in_labels.size()){
+           uint patch_id= IntersectionPointRationals::findPatchIdByTriId(inter_rat, t_id_int);
+           phmap::flat_hash_set<uint> patch_app = patches.at(patch_id);
+            for(uint t_id : patch_app){
+                if (t_id < in_labels.size()){
+                    t_id_father = t_id;
+                    break;
+                }
+            }
+            t_id_int = t_id_father;
+        }*/
+
+
+        const std::bitset<NBIT> tested_tri_label = labels.surface.at(t_id_int);
+        uint uint_tri_label = bitsetToUint(tested_tri_label);
+        //t_id_int = t_id_app;
+
+        if (patch_surface_label[uint_tri_label]) continue; // <-- triangle of the same label of the tested patch
+
+        bigrational tv0_x, tv0_y, tv0_z,
+                tv1_x, tv1_y, tv1_z,
+                tv2_x, tv2_y, tv2_z;
+
+        const uint tv[3] = {tm.triVertID(t_id_int, 0), tm.triVertID(t_id_int, 1), tm.triVertID(t_id_int, 2)};
+
+        in_verts[tv[0]]->getExactXYZCoordinates(tv0_x, tv0_y, tv0_z);
+        in_verts[tv[1]]->getExactXYZCoordinates(tv1_x, tv1_y, tv1_z);
+        in_verts[tv[2]]->getExactXYZCoordinates(tv2_x, tv2_y, tv2_z);
+
+
+        //print size in tris
+        //in_verts[in_tris[3 * t_id_int]]->getExactXYZCoordinates(tv0_x, tv0_y, tv0_z);
+        //in_verts[in_tris[3 * t_id_int + 1]]->getExactXYZCoordinates(tv1_x, tv1_y, tv1_z);
+        //in_verts[in_tris[3 * t_id_int + 2]]->getExactXYZCoordinates(tv2_x, tv2_y, tv2_z);
+
+        const std::vector<bigrational> tv0_exact = {tv0_x, tv0_y, tv0_z};
+        const std::vector<bigrational> tv1_exact = {tv1_x, tv1_y, tv1_z};
+        const std::vector<bigrational> tv2_exact = {tv2_x, tv2_y, tv2_z};
+
+        std::cout <<"t_id_int before fast2DIntersectionOnRayRationals: " << t_id_int << std::endl;
+
+        IntersInfo ii = fast2DCheckIntersectionOnRayRationals(ray, tv0_exact, tv1_exact, tv2_exact);
+
+        std::cout<< "ii: " << ii << std::endl;
+
+        if (ii == DISCARD){
+            std::cout<<"DISCARD" << std::endl;
+            continue;}
+        if (ii == NO_INT){
+            std::cout<<"NO_INT" << std::endl;
+            continue;}
+
+        if (ii == INT_IN_TRI) {
+            std::cout << "INT_IN_TRI" << " t_id-> "<<t_id_int<<std::endl;
+
+            inters_tris_rat.push_back(t_id_int);
+
+        } else if (ii == INT_IN_V0 || ii == INT_IN_V1 || ii == INT_IN_V2) {
+            std::cout << "INT_IN_V" << std::endl;
+            uint v_id;
+            if (ii == INT_IN_V0) v_id = in_tris[3 * t_id_int];
+            else if (ii == INT_IN_V1) v_id = in_tris[3 * t_id_int + 1];
+            else v_id = in_tris[3 * t_id_int + 2];
+
+            std::vector<uint> vert_one_ring;
+            findVertRingTris(v_id, tested_tri_label, tmp_inters, in_tris, in_labels, vert_one_ring);
+
+            for (uint t: vert_one_ring)
+                visited_tri.insert(t); // mark all the one ring as visited
+
+            int winner_tri = -1;
+            winner_tri = perturbRayAndFindIntersTri(ray, in_verts, in_tris,
+                                                    vert_one_ring); // the first inters triangle after ray perturbation
+
+            if (winner_tri != -1)
+                inters_tris_rat.push_back(winner_tri);
+
+        } else if (ii == INT_IN_EDGE01 || ii == INT_IN_EDGE12 || ii == INT_IN_EDGE20) {
+            std::cout << "INT_IN_EDGE" << std::endl;
+
+            int ev0_id, ev1_id;
+            if (ii == INT_IN_EDGE01) {
+                ev0_id = in_tris[3 * t_id_int];
+                ev1_id = in_tris[3 * t_id_int + 1];
+            } else if (ii == INT_IN_EDGE12) {
+                ev0_id = in_tris[3 * t_id_int + 1];
+                ev1_id = in_tris[3 * t_id_int + 2];
+            } else {
+                ev0_id = in_tris[3 * t_id_int + 2];
+                ev1_id = in_tris[3 * t_id_int];
+            }
+
+            std::cout << "t_id_int: " << t_id_int<<std::endl;
+            std::cout << "ev0_id: " << ev0_id << std::endl;
+            std::cout << "ev1_id: " << ev1_id << std::endl;
+
+            std::vector<uint> edge_tris;
+
+            findEdgeTrisCustom(ev0_id, ev1_id, tested_tri_label, tmp_inters, in_tris, in_labels, edge_tris);
+
+            for (uint t: edge_tris)
+                visited_tri.insert(t); // mark all the one ring as visited
+
+            int winner_tri = -1;
+            winner_tri = perturbRayAndFindIntersTri(ray, in_verts, in_tris, edge_tris);
+
+            if (winner_tri != -1)
+                inters_tris_rat.push_back(winner_tri);
+
+        }
+
+        //Sanity check if there is an intersection point that it's found before
+        for (auto &t_id_tmp : inters_tris_rat) {
+            bool found = false;
+            for (auto &p_int: inter_rat) {
+                if (t_id_tmp == p_int.getTriId()) {
+                    found = true;
+                    break;
+                }
+            }
+            assert(found && "The triangle is not in the intersection points");
+        }
+
+        std::cout << "inter_rat size: " << inter_rat.size() << std::endl;
+        if (ray.dir == 'X')
+            //sort the inter_rat along the x coordinate
+            sort(inter_rat.begin(), inter_rat.end(),
+                 [](const IntersectionPointRationals &a, const IntersectionPointRationals &b) {
+                     return a.lessThanX(b);
+                 });
+        else if (ray.dir == 'Y')
+            sort(inter_rat.begin(), inter_rat.end(),
+                 [](const IntersectionPointRationals &a, const IntersectionPointRationals &b) {
+                     return a.lessThanY(b);
+                 });
+        else
+            sort(inter_rat.begin(), inter_rat.end(),
+                 [](const IntersectionPointRationals &a, const IntersectionPointRationals &b) {
+                     return a.lessThanZ(b);
+                 });
+
+    }
+}
+
+
+
+
+//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::....
 
 inline void analyzeSortedIntersections(const Ray &ray, const std::vector<genericPoint*> &in_verts, const std::vector<uint> &in_tris,
                                        const std::vector<std::bitset<NBIT>> &in_labels, const std::vector<uint> &sorted_inters,
@@ -1259,6 +1475,54 @@ inline void analyzeSortedIntersections(const Ray &ray, const std::vector<generic
 
         visited_labels[t_label] = true;
     }
+}
+//:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+inline void analyzeSortedIntersectionsRationals(const RationalRay &rational_ray, const FastTrimesh &tm, const std::vector<genericPoint*> &in_verts,
+                                               std::vector<IntersectionPointRationals> &inter_rat, std::bitset<NBIT> &patch_inner_label, Labels &labels){
+
+    std::bitset<NBIT> visited_labels;
+
+
+    //copy the tri_id into inter_rat_tris_ordered from inter_rat
+    /*std::vector<uint> inter_rat_tris_ordered;
+
+    for (auto &p: inter_rat) {
+        inter_rat_tris_ordered.push_back(p.getTriId());
+    }*/
+    bool print_ray = true;
+
+    for (int i = 0; i < inter_rat.size(); i++) {
+
+        uint t_id = inter_rat[i].getTriId();
+        uint t_label = bitsetToUint(labels.surface.at(t_id));
+
+        if (visited_labels[t_label]) continue;
+
+        for (auto &p: inter_rat) {
+            if (p.getTriId() == t_id) {
+                //get the three points of the triangle
+                bigrational x0_aux, x1_aux, x2_aux, y0_aux, y1_aux, y2_aux, z0_aux, z1_aux, z2_aux;
+
+                uint tv_aux[3] = {tm.triVertID(t_id, 0), tm.triVertID(t_id, 1), tm.triVertID(t_id, 2)};
+
+                in_verts[tv_aux[0]]->getExactXYZCoordinates(x0_aux, y0_aux, z0_aux);
+                in_verts[tv_aux[1]]->getExactXYZCoordinates(x1_aux, y1_aux, z1_aux);
+                in_verts[tv_aux[2]]->getExactXYZCoordinates(x2_aux, y2_aux, z2_aux);
+
+                std::vector<bigrational> tv0_aux = {x0_aux, y0_aux, z0_aux};
+                std::vector<bigrational> tv1_aux = {x1_aux, y1_aux, z1_aux};
+                std::vector<bigrational> tv2_aux = {x2_aux, y2_aux, z2_aux};
+
+                //printInfoTriangleRationals(rational_ray, tv0_aux, tv1_aux, tv2_aux, tv_aux, t_id, print_ray);
+
+                if (checkTriangleOrientationRationals(rational_ray, tv0_aux, tv1_aux, tv2_aux) == 1) {
+                    patch_inner_label[t_label] = true;
+                }
+                visited_labels[t_label] = true;
+            }
+        }
+    }
+
 }
 
 //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -1893,8 +2157,8 @@ inline bool checkIntersectionInsideTriangle3DRationals(const RationalRay &ray, c
     bigrational or12f_rat = cinolib::orient3d(&tv1[0], &tv2[0], &ray.v0[0], &ray.v1[0]);
     bigrational or20f_rat = cinolib::orient3d(&tv2[0], &tv0[0], &ray.v0[0], &ray.v1[0]);
 
-    if(or01f_rat > bigrational(0.0) && or12f_rat > bigrational(0.0) && or20f_rat > bigrational(0.0)) return true;
-    if(or01f_rat < bigrational(0.0) && or12f_rat < bigrational(0.0) && or20f_rat < bigrational(0.0)) return true;
+    if(or01f_rat > bigrational(0,0,0) && or12f_rat > bigrational(0,0,0) && or20f_rat > bigrational(0,0,0)) return true;
+    if(or01f_rat < bigrational(0,0,0) && or12f_rat < bigrational(0,0,0) && or20f_rat < bigrational(0,0,0)) return true;
 
     return false;
 }
@@ -2446,3 +2710,23 @@ inline void loadInputWithLabels(const string &filename, std::vector<double> &coo
         labels.push_back(static_cast<uint>(m.poly_data(t_id).label));
     }
 }
+
+
+inline void printInfoTriangleRationals(RationalRay &rational_ray, std::vector <bigrational> &tv0_aux, std::vector <bigrational> &tv1_aux, std::vector <bigrational> &tv2_aux,
+                                       uint *tv_aux, uint &t_id, bool &print_ray){
+
+    if(print_ray){
+        std::cout << "Info about ray:" << std::endl;
+        std::cout << "Start point: " << "v0: " << rational_ray.v0[0].get_d() << " v1: " << rational_ray.v0[1].get_d() << " v2: " << rational_ray.v0[2].get_d() << std::endl;
+        std::cout << "End point: "   << "v0: " << rational_ray.v1[0].get_d() << " v1: " << rational_ray.v1[1].get_d() << " v2: " << rational_ray.v1[2].get_d() << std::endl;
+        print_ray = false;
+    }
+
+    std::cout << "Info about triangle whith t_id: " << t_id << std::endl;
+    std::cout << "v_id: " <<tv_aux[0]<< " v0: " << tv0_aux[0].get_d() << " v1: " << tv0_aux[1].get_d() << " v2: " << tv0_aux[2].get_d() << std::endl;
+    std::cout << "v_id: " <<tv_aux[1]<< " v0: " << tv1_aux[0].get_d() << " v1: " << tv1_aux[1].get_d() << " v2: " << tv1_aux[2].get_d() << std::endl;
+    std::cout << "v_id: " <<tv_aux[2]<< " v0: " << tv2_aux[0].get_d() << " v1: " << tv2_aux[1].get_d() << " v2: " << tv2_aux[2].get_d() << std::endl;
+
+
+}
+
