@@ -16,8 +16,6 @@ using namespace std;
 bool debug = true;
 bool demo = false;
 bool debug_impl = false;
-bool flag_arrangement_debug = false;
-
 
 int main(int argc, char **argv)
 {
@@ -33,17 +31,21 @@ int main(int argc, char **argv)
         file_path = argv[1];
         file_path2 = argv[2];
     }else{
-        file_path = "../data/test/Horse/Horse_conv/horse0.obj";
+        //file_path = "../data/test/Horse/Horse_conv/horse0.obj";
         //file_path = "../data/t0.obj";
+        file_path = "../data/mostro0.obj";
         //file_path = "../data/test/cube.obj";
-        file_path2 = "../data/test/Horse/Horse_conv/horse1.obj";
+        //file_path2 = "../data/test/Horse/Horse_conv/horse1.obj";
+        file_path2 = "../data/mostro1.obj";
         //file_path2 = "../data/t1.obj";
-        //file_path2 = "../data/test/pyramid_transform.obj"
+        //file_path2 = "../data/test/pyramid_transform.obj";
 
     }
-    string file_out = "diff_horse0_1.obj";
-    string file_parts_to_color = "parts_to_color_horse0_1.txt";
-    string file_patches = "horse_0_1.txt";
+    string name = "mostro0_1";
+
+    string file_out = "diff_cube_"+name+".obj";
+    string file_parts_to_color = "parts_to_color_"+name+".txt";
+    string file_patches = name+".txt";
 
     vector<string> files = {file_path, file_path2};
 
