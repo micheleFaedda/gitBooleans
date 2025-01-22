@@ -23,6 +23,12 @@ public:
         this->tri_id = tri_id;
         this->patch_id = patch_id;
     }
+    IntersectionPointRationals(bigrational x, bigrational y, bigrational z, uint tri_id){
+        this->x = x;
+        this->y = y;
+        this->z = z;
+        this->tri_id = tri_id;
+    }
 
     bigrational getX() const {
         return x;

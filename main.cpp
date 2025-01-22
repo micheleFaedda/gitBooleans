@@ -14,8 +14,10 @@
 using namespace cinolib;
 using namespace std;
 bool debug = true;
-bool debug_impl = true;
+bool demo = false;
+bool debug_impl = false;
 bool flag_arrangement_debug = false;
+
 
 int main(int argc, char **argv)
 {
@@ -31,28 +33,35 @@ int main(int argc, char **argv)
         file_path = argv[1];
         file_path2 = argv[2];
     }else{
-        file_path = "../data/A.obj";
+        file_path = "../data/test/Horse/Horse_conv/horse0.obj";
+        //file_path = "../data/t0.obj";
         //file_path = "../data/test/cube.obj";
-        file_path2 = "../data/C_edge.obj";
-        //file_path2 = "../data/test/pyramid_transform.obj";
-    }
+        file_path2 = "../data/test/Horse/Horse_conv/horse1.obj";
+        //file_path2 = "../data/t1.obj";
+        //file_path2 = "../data/test/pyramid_transform.obj"
 
+    }
+    string file_out = "diff_horse0_1.obj";
+    string file_parts_to_color = "parts_to_color_horse0_1.txt";
+    string file_patches = "horse_0_1.txt";
 
     vector<string> files = {file_path, file_path2};
 
     BoolOp op = UNION;
-    string file_out = "diff.obj";
+
+
 
     vector<double> in_coords, bool_coords;
     vector<uint> in_tris, bool_tris;
     vector<uint> in_labels;
     vector<bitset<NBIT>> bool_labels;
 
-
+    Profiler profiler;
+    profiler.push("Total time");
     //start timer
-    auto start = std::chrono::system_clock::now();
-
     loadMultipleFiles(files, in_coords, in_tris, in_labels);
+
+    cinolib::write_OBJ("input_error.obj", in_coords, in_tris, {});
 
     //booleanPipeline(in_coords, in_tris, in_labels, op, bool_coords, bool_tris, bool_labels);
 
@@ -72,23 +81,18 @@ int main(int argc, char **argv)
 
 
 
-
     //customBooleanPipeline(arr_verts, arr_in_tris, arr_out_tris, arr_in_labels, dupl_triangles, labels, patches, octree, op, bool_coords, bool_tris, bool_labels);
-
     FastTrimesh tm(arr_verts, arr_out_tris, false);
 
 
     computeAllPatches(tm, labels, patches, false);
-    // the informations about duplicated triangles (removed in arrangements) are restored in the original structures
 
+    // the informations about duplicated triangles (removed in arrangements) are restored in the original structures
     addDuplicateTrisInfoInStructures(dupl_triangles, arr_in_tris, arr_in_labels, octree);
 
     // parse patches with octree and rays
     cinolib::vec3d max_coords(octree.root->bbox.max.x() +0.5, octree.root->bbox.max.y() +0.5, octree.root->bbox.max.z() +0.5);
     computeInsideOut(tm, patches, octree, arr_verts, arr_in_tris, arr_in_labels, max_coords, labels);
-
-    /******************************************************************************************************/
-
 
 
     /******************************************************************************************************/
@@ -96,89 +100,79 @@ int main(int argc, char **argv)
     std::vector<std::vector<std::vector<uint>>> parts_to_color;
     std::vector<int> num_tri_to_color_per_part;
     uint num_parts = debug_impl ? 4 : 3 ;
-    //uint num_parts = patches.size();
     parts_to_color.resize(num_parts);
     num_tri_to_color_per_part.resize(num_parts);
 
     tm.resetTrianglesInfo();
-
     uint num_tris_in_final_result = 0;
-    /*
-       int i = 0;
 
-       for(auto p : patches){
-           for(auto t : p){
-               num_tri_to_color_per_part[i]++;
-           }
-           i++;
-       }
+    vector<int> p_ids;
 
-       for(uint t_id = 0 ; t_id < tm.numTris(); ++t_id) {
-           tm.setTriInfo(t_id, 1);
-           num_tris_in_final_result++;
-       }
-      */
-       /*
-        * ORIGINAL DIFF CODE
-        */
-       if (!debug_impl){
-             for(uint t_id = 0 ; t_id < tm.numTris(); ++t_id){
-               if(labels.surface[t_id][1]){ //if the triangle belong to B
-                   if(labels.surface[t_id].count() == 2 && labels.inside[t_id].count() == 0){
-                       //TODO: GRAY PARTS
-                       tm.setTriInfo(t_id, 1);
-                       num_tris_in_final_result++;
-                       num_tri_to_color_per_part[0]++;
-
-                   }else if(labels.inside[t_id][0]){ //parts of B inside A
-                       //TODO: RED PARTS
-                       tm.setTriInfo(t_id, 1);
-                       num_tris_in_final_result++;
-                       num_tri_to_color_per_part[1]++;
-
-                   }else if(!labels.inside[t_id][0]){
-                       //TODO: GREEN PARTS
-                       tm.setTriInfo(t_id, 1);
-                       num_tris_in_final_result++;
-                       num_tri_to_color_per_part[2]++;
-                   }
-               }
-           }
-       }
-
-
-       /**
-        * DIFF CODE FOR DEBUGGING
-        *
-        * **/
-    if (debug_impl) {
-        for(uint t_id = 0 ; t_id < tm.numTris(); ++t_id){
-            if(labels.surface[t_id][1]){ //if the triangle belong to B
-                if(labels.surface[t_id].count() == 2 && labels.inside[t_id].count() == 0){
-                    //TODO: GRAY PARTS
-                    tm.setTriInfo(t_id, 1);
-                    num_tris_in_final_result++;
-                    num_tri_to_color_per_part[0]++;
-
-                }else if(labels.inside[t_id][0]){ //parts of B inside A
-                    //TODO: RED PARTS
-                    tm.setTriInfo(t_id, 1);
-                    num_tris_in_final_result++;
-                    num_tri_to_color_per_part[1]++;
-
-                }else if(!labels.inside[t_id][0]){
-                    //TODO: GREEN PARTS
-                    tm.setTriInfo(t_id, 1);
-                    num_tris_in_final_result++;
-                    num_tri_to_color_per_part[2]++;
-                }
-            }
-
-            if(labels.surface[t_id][0]){
+    for(uint t_id = 0 ; t_id < tm.numTris(); ++t_id){
+        if(labels.surface[t_id][1]){ //if the triangle belong to B
+            if(labels.surface[t_id].count() == 2 && labels.inside[t_id].count() == 0){
+                //TODO: GRAY PARTS
                 tm.setTriInfo(t_id, 1);
                 num_tris_in_final_result++;
-                num_tri_to_color_per_part[3]++;
+                num_tri_to_color_per_part[0]++;
+                for(uint p_id = 0; p_id < patches.size(); ++p_id){
+                    if(patches[p_id].contains(t_id)){
+                        p_ids.push_back(p_id);
+                        break;
+                    }
+                }
+                continue;
+
+            }else if(labels.inside[t_id][0]){ //parts of B inside A
+                //TODO: RED PARTS
+                tm.setTriInfo(t_id, 1);
+                num_tris_in_final_result++;
+                num_tri_to_color_per_part[1]++;
+                for(uint p_id = 0; p_id < patches.size(); ++p_id){
+                    if(patches[p_id].contains(t_id)){
+                        p_ids.push_back(p_id);
+                        break;
+                    }
+                }
+                continue;
+
+            }else if(!labels.inside[t_id][0]){
+                //TODO: GREEN PARTS
+                tm.setTriInfo(t_id, 1);
+                num_tris_in_final_result++;
+                num_tri_to_color_per_part[2]++;
+                for(uint p_id = 0; p_id < patches.size(); ++p_id){
+                    if(patches[p_id].contains(t_id)){
+                        p_ids.push_back(p_id);
+                        break;
+                    }
+                }
+                continue;
             }
+        }
+
+        if(debug_impl && labels.surface[t_id][0]){
+            tm.setTriInfo(t_id, 1);
+            num_tris_in_final_result++;
+            num_tri_to_color_per_part[3]++;
+            for(uint p_id = 0; p_id < patches.size(); ++p_id){
+                if(patches[p_id].contains(t_id)){
+                    p_ids.push_back(p_id);
+                    break;
+                }
+            }
+        }
+    }
+
+    //remove duplicates in p_ids
+    std::sort(p_ids.begin(), p_ids.end());
+    p_ids.erase(std::unique(p_ids.begin(), p_ids.end()), p_ids.end());
+
+    std::vector <uint> patches_debug_diff_tIds;
+    patches_debug_diff_tIds.resize(num_tris_in_final_result);
+    for(uint i = 0; i < tm.numTris(); i++){
+        if(tm.triInfo(i) == 1){
+            patches_debug_diff_tIds.push_back(i);
         }
     }
 
@@ -264,110 +258,110 @@ int main(int argc, char **argv)
 
     // rescale output
     double multiplier = tm.vert(tm.numVerts() - 1)->toExplicit3D().X();
-    std::cout<<"Size bool_coords: "<<bool_coords.size()<<std::endl;
     for(double &c : bool_coords) c /= multiplier;
     /**********************************************************************************************/
+
+    profiler.pop(); //end timer
 
 
     cinolib::write_OBJ(file_out.c_str(), bool_coords, bool_tris, {});
 
-    GLcanvas gui;
-    DrawableTrimesh<>new_mesh;
+    //save the green, gray and red parts in a file to be used in the GUI
 
+    //create the file with name parts_to_color +
+    savePartsToFile(parts_to_color,
+                    "/Users/michele/Documents/GitHub/gitBooleans/results/debug/parts_to_color_" + file_parts_to_color,debug_impl);
+
+    savePatchesTriangles("/Users/michele/Documents/GitHub/gitBooleans/results/debug/patches_" + file_patches,
+                         p_ids, patches);
+
+    GLcanvas gui;
     DrawableTrimesh<> m(bool_coords, bool_tris);
     SurfaceMeshControls<DrawableTrimesh<>> controls(&m, &gui,file_out.c_str());
 
     gui.push(&m);
     gui.push(&controls);
 
-    for(uint i = 0; i < parts_to_color.size(); ++i) {
-        for (uint j = 0; j < parts_to_color[i].size(); ++j) {
 
-            int t_id =  m.poly_id({parts_to_color[i][j][0], parts_to_color[i][j][1], parts_to_color[i][j][2]});
-            if (t_id == -1) std::cerr << "Error: triangle not found" << std::endl;
+    int t_deb;
+    int p = -1;
 
-            if(i == 0){
-                m.poly_data(t_id).color = Color(0.9f,0.9f,0.9f,0.8f);
-            }else if(i == 1){
-                m.poly_data(t_id).color = Color(201/255.f,79/255.f,86/255.f);
-            } else if(i == 2){
-                m.poly_data(t_id).color = Color(122/255.f,239/255.f,72/255.f);
-            } else if (debug_impl && i==3){
-                m.poly_data(t_id).color = Color(255/255.f,255/255.f,255/255.f,0.9f);
+    gui.callback_app_controls = [&]()
+    {
+        if(ImGui::Button("Next Patch"))
+        {
+            // button clicked: do something
+            for(uint i = 0; i < m.num_polys(); ++i){
+                m.poly_data(i).color = cinolib::Color(cinolib::Color::WHITE());
             }
-        }
-    }/*
+            std::cout<< "p : "<< p << std::endl;
+            p++;
 
-    //create a vector of 10 Color objects
-    std::vector<Color> colors;
-    colors.resize(patches.size());
-/*
-    //fill the vector with random colors
-    for(int i = 0; i < patches.size(); i++){
-
-        //color in float format
-        float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-        float g = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-        float b = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-
-        //create the color object
-        Color color(r, g, b);
-        colors[i] = color;
-
-    }
-
-    colors[0] = cinolib::Color::PASTEL_GREEN();
-    colors[1] = cinolib::Color::PASTEL_RED();
-    colors[2] = cinolib::Color::PASTEL_YELLOW();
-    colors[3] = cinolib::Color::PASTEL_ORANGE();
-    colors[4] = cinolib::Color::PASTEL_CYAN();
-    colors[5] = cinolib::Color::PASTEL_MAGENTA();
-    colors[6] = cinolib::Color::PASTEL_PINK();
-    colors[7] = cinolib::Color::PASTEL_VIOLET();
-
-
-
-    //print the colors
-    for(int i = 0; i < patches.size(); i++){
-        std::cout << "Color " << i << ": " << colors[i].r << " " << colors[i].g << " " << colors[i].b << std::endl;
-    }
-
-    //
-
-    for(uint i = 0; i < parts_to_color.size(); ++i) {
-         for (uint j = 0; j < parts_to_color[i].size(); ++j) {
-
-            int t_id =  m.poly_id({parts_to_color[i][j][0], parts_to_color[i][j][1], parts_to_color[i][j][2]});
-
-            m.poly_data(t_id).color = colors[i];
-
-        }
-    }/*
-    for(uint i = 0; i < parts_to_color.size(); ++i) {
-        for (uint j = 0; j < parts_to_color[i].size(); ++j) {
-
-            int t_id =  m.poly_id({parts_to_color[i][j][0], parts_to_color[i][j][1], parts_to_color[i][j][2]});
-            if (t_id == -1) std::cerr << "Error: triangle not found" << std::endl;
-
-            if(i == 0){
-                m.poly_data(t_id).color = Color(0.9f,0.9f,0.9f,0.8f);
-            }else if(i == 1){
-                m.poly_data(t_id).color = Color(201/255.f,79/255.f,86/255.f);
-            }  else if(i == 2){
-                m.poly_data(t_id).color = Color(122/255.f,239/255.f,72/255.f);
+            //print the triangles id into patches_debug_diff_tIds
+            for(auto print : p_ids){
+                std::cout << "Triangle patch: " << print << std::endl;
             }
-        }
-    }*/
 
-    //end timer
-    auto end = std::chrono::system_clock::now();
-    std::chrono::duration<double> elapsed_seconds = end-start;
-    //convert into hh:mm:ss:msms
-    std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_seconds);
-    std::chrono::seconds sec = std::chrono::duration_cast<std::chrono::seconds>(ms);
-    std::chrono::minutes min = std::chrono::duration_cast<std::chrono::minutes>(sec);
-    std::chrono::hours hours = std::chrono::duration_cast<std::chrono::hours>(min);
-    std::cout << "elapsed time: " << hours.count() << "h:" << min.count() << "m:" << sec.count() << "s:" << ms.count() << "ms" << std::endl;
+            for(uint t_id : patches.at(p_ids.at(p))){
+
+                uint v0 = bool_tris.at(t_id*3);
+                uint v1 = bool_tris.at(t_id*3+1);
+                uint v2 = bool_tris.at(t_id*3+2);
+
+                std::cout << "Triangle: " << bool_tris.at(t_id*3) << " " << bool_tris.at(t_id*3+1) << " " << bool_tris.at(t_id*3+2) << std::endl;
+                int p_id = m.poly_id({v0, v1, v2});
+                m.poly_data(p_id).color = cinolib::Color(cinolib::Color::YELLOW());
+                //}
+            }
+            if(p == patches.size()-1){
+                p = -1;
+            }
+            m.updateGL();
+        }
+        if(ImGui::Button("Reset")){
+            for(uint i = 0; i < m.num_polys(); ++i){
+                m.poly_data(i).color = cinolib::Color(cinolib::Color::WHITE());
+            }
+            m.updateGL();
+        }
+        if(ImGui::Button("Show Diff")){
+            for(uint i = 0; i < parts_to_color.size(); ++i) {
+                for (uint j = 0; j < parts_to_color[i].size(); ++j) {
+
+                    int t_id =  m.poly_id({parts_to_color[i][j][0], parts_to_color[i][j][1], parts_to_color[i][j][2]});
+                    if (t_id == -1) std::cerr << "Error: triangle not found" << std::endl;
+
+                    if(i == 0){ //WHITE
+                            m.poly_data(t_id).color = Color(0.9f,0.9f,0.9f,0.8f);
+                    }else if(i == 1){ //RED
+                            m.poly_data(t_id).color = Color(201/255.f,79/255.f,86/255.f);
+                    } else if(i == 2){  //GREEN
+                        m.poly_data(t_id).color = Color(122/255.f,239/255.f,72/255.f);
+                    } else if (debug_impl && i==3){ //WHITE TRANSPARENT
+                        m.poly_data(t_id).color = Color(255/255.f,255/255.f,255/255.f,0.9f);
+                    }
+                }
+            }
+            m.updateGL();
+        }
+        if(ImGui::InputInt("Text Input", &t_deb, 0, m.num_verts())){
+            for(uint i = 0; i < m.num_polys(); ++i){
+                //m.poly_data(i).color = cinolib::Color(cinolib::Color::WHITE());
+                m.poly_data(i).color = cinolib::Color(1.0f,1.0f,1.0f,0.0f);
+            }
+            m.poly_data(t_deb).color = cinolib::Color(cinolib::Color::YELLOW());
+            cinolib::Marker marker;
+            marker.color = cinolib::Color(cinolib::Color::RED());
+            marker.text = std::to_string(t_deb);
+            marker.disk_radius = 0.3f;
+            marker.pos_3d = m.poly_centroid(t_deb);
+            gui.push(marker);
+            m.updateGL();
+        }
+    };
+
     m.updateGL();
+
     return gui.launch();
 }
+

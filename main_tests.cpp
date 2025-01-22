@@ -13,10 +13,140 @@
 #include <cinolib/gl/surface_mesh_controls.h>
 #include <cinolib/drawable_triangle_soup.h>
 using namespace cinolib;
+void savePartsToFile(const std::vector<std::vector<std::vector<unsigned int>>>& parts_to_color,
+                     const std::string& filename,
+                     bool debug_impl);
+void savePartsToFile(const std::vector<std::vector<std::vector<unsigned int>>>& parts_to_color,
+                     const std::string& filename,
+                     bool debug_impl) {
+    // Open a file for writing
+    std::ofstream outFile(filename);
+    if (!outFile.is_open()) {
+        std::cerr << "Error opening file: " << filename << std::endl;
+        return;
+    }
+
+    // Define the color labels
+    std::vector<std::string> labels = {"GRAY Parts", "RED Parts", "GREEN Parts", "WHITE Parts"};
+
+    // Adjust the number of parts to save
+    size_t num_parts = debug_impl ? 4 : 3;
+
+    // Iterate through the parts
+    for (size_t i = 0; i < num_parts; ++i) {
+        // Write the label
+        if (i < labels.size()) {
+            outFile << labels[i] << "\n";
+        } else {
+            outFile << "UNKNOWN Parts\n";
+        }
+
+        // Write the indices of vertices
+        for (const auto& vertex : parts_to_color[i]) {
+            for (unsigned int index : vertex) {
+                outFile << index << " ";
+            }
+            outFile << "\n";
+        }
+    }
+
+    // Close the file
+    outFile.close();
+}
+bool parseFileToParts(const std::string& filename,
+                      std::vector<std::vector<std::vector<unsigned int>>>& parts_to_color,
+                      bool debug_impl);
+bool parseFileToParts(const std::string& filename,
+                      std::vector<std::vector<std::vector<unsigned int>>>& parts_to_color,
+                      bool debug_impl) {
+    // Open the file for reading
+    std::ifstream inFile(filename);
+    if (!inFile.is_open()) {
+        std::cerr << "Error opening file: " << filename << std::endl;
+        return false;
+    }
+
+    // Define labels and corresponding indices
+    std::unordered_map<std::string, size_t> labelToIndex = {
+            {"GRAY Parts", 0},
+            {"RED Parts", 1},
+            {"GREEN Parts", 2},
+            {"WHITE Parts", 3} // New label for debug_impl
+    };
+
+    // Adjust the parts_to_color size
+    size_t num_parts = debug_impl ? 4 : 3;
+    parts_to_color.resize(num_parts);
+
+    // Parsing state
+    std::string line;
+    size_t currentPart = 0;
+
+    // Parse the file line by line
+    while (std::getline(inFile, line)) {
+        // Check if the line is a label
+        if (labelToIndex.find(line) != labelToIndex.end()) {
+            currentPart = labelToIndex[line];
+        } else {
+            // Parse indices in the current line
+            std::istringstream iss(line);
+            std::vector<unsigned int> vertices;
+            unsigned int vertex;
+            while (iss >> vertex) {
+                vertices.push_back(vertex);
+            }
+            // Add parsed vertices to the correct part
+            if (currentPart < parts_to_color.size()) {
+                parts_to_color[currentPart].push_back(vertices);
+            }
+        }
+    }
+
+    inFile.close();
+    return true;
+}
 
 
 int main(int argc, char **argv) {
-    /*bigrational zero = bigrational(0,0,0);
+
+    std::vector<std::vector<std::vector<unsigned int>>> parts_to_color = {
+            {{0, 1, 2}, {3, 4, 5}}, // GRAY Parts
+            {{6, 7, 8}},            // RED Parts
+            {{9, 10, 11}, {12, 13}},// GREEN Parts
+            {{14, 15}}              // Additional for debug_impl
+    };
+
+    // Save to a file with debug_impl = false
+    savePartsToFile(parts_to_color, "output_normal.txt", false);
+
+    // Save to a file with debug_impl = true
+    savePartsToFile(parts_to_color, "output_debug.txt", true);
+
+
+
+
+    // Data structure to store the parsed parts
+    std::vector<std::vector<std::vector<unsigned int>>> parts_to_color_debug;
+
+    // Filename to parse
+    std::string filename = "/Users/michele/Documents/GitHub/gitBooleans/cmake-build-debug/";
+
+    // Parse the file with debug mode enabled
+    if (parseFileToParts(filename, parts_to_color_debug, true)) {
+        // Print the parsed data for verification
+        for (size_t i = 0; i < parts_to_color_debug.size(); ++i) {
+            std::cout << "Part " << i << ":\n";
+            for (const auto& vertexGroup : parts_to_color_debug[i]) {
+                for (unsigned int vertex : vertexGroup) {
+                    std::cout << vertex << " ";
+                }
+                std::cout << "\n";
+            }
+        }
+    } else {
+        std::cerr << "Failed to parse the file.\n";
+    }
+    /*bigrational zero = bigrational(0,0,0)
 
     const uint64_t one = 412425389222715451;
     const uint64_t two = 316268131472977041;
@@ -30,8 +160,10 @@ int main(int argc, char **argv) {
     bigrational Xmin_s1 = std::max(zero, zero);
     std::cout << "Xmin_s1: " << Xmin_s1 << std::endl;
 */
-    std::vector <uint> faces;
-    std::vector <double> coords;
+
+
+    //std::vector <uint> faces;
+    //std::vector <double> coords;
 
     /*
     //triangle t_id = 32
@@ -142,7 +274,7 @@ int main(int argc, char **argv) {
     std::cout << "Intersection t1: " << intersection_t1 << std::endl;
 */
     //triangle t_id = 1863
-    const double x0_t0 = -5.58796e+09;
+    /*const double x0_t0 = -5.58796e+09;
     const double y0_t0 = -6.51274e+09;
     const double z0_t0 = 7.42589e+09;
 
@@ -310,9 +442,9 @@ int main(int argc, char **argv) {
     genericPoint *P1 = new implicitPoint3D_LPI(iq_P1, ip_P1, ir, is, it);
     genericPoint *P2 = new implicitPoint3D_LPI(iq_P2, ip_P2, ir, is, it);
     genericPoint *P3 = new implicitPoint3D_LPI(iq_P3, ip_P3, ir, is, it);
-
+*/
     /************************* ORIENT3D IMPLICIT **********************/
-    int T0_orient = genericPoint::orient3D(*P0, ir, it, is);
+   /* int T0_orient = genericPoint::orient3D(*P0, ir, it, is);
     int T1_orient = genericPoint::orient3D(*P1, ir, it, is);
     int T2_orient = genericPoint::orient3D(*P2, ir, it, is);
     int T3_orient = genericPoint::orient3D(*P3, ir, it, is);
@@ -321,9 +453,9 @@ int main(int argc, char **argv) {
     std::cout << "Result P1 Implicit: " << T1_orient << std::endl;
     std::cout << "Result P2 Implicit: " << T2_orient << std::endl;
     std::cout << "Result P3 Implicit: " << T3_orient << std::endl;
-
+*/
     /*Rationals*/
-    bigrational x_P0, y_P0, z_P0;
+/*    bigrational x_P0, y_P0, z_P0;
     P0->getExactXYZCoordinates(x_P0,y_P0,z_P0);
 
     bigrational x_P1, y_P1, z_P1;
@@ -355,9 +487,9 @@ int main(int argc, char **argv) {
     std::vector<bigrational> ir_rational = {x_ir, y_ir, z_ir};
     std::vector<bigrational> is_rational = {x_is, y_is, z_is};
     std::vector<bigrational> it_rational = {x_it, y_it, z_it};
-
+*/
     /************************* ORIENT3D RATIONALS **********************/
-    auto result_rational_P0 = orient3d(&P0_rational[0], &ir_rational[0], &it_rational[0], &is_rational[0]);
+   /* auto result_rational_P0 = orient3d(&P0_rational[0], &ir_rational[0], &it_rational[0], &is_rational[0]);
     auto result_rational_P1 = orient3d(&P1_rational[0], &ir_rational[0], &it_rational[0], &is_rational[0]);
     auto result_rational_P2 = orient3d(&P2_rational[0], &ir_rational[0], &it_rational[0], &is_rational[0]);
     auto result_rational_P3 = orient3d(&P3_rational[0], &ir_rational[0], &it_rational[0], &is_rational[0]);
@@ -367,7 +499,7 @@ int main(int argc, char **argv) {
     std::cout << "Result P1 Rationals: " << result_rational_P1 << std::endl;
     std::cout << "Result P2 Rationals: " << result_rational_P2 << std::endl;
     std::cout << "Result P3 Rationals: " << result_rational_P3 << std::endl;
-
+*/
     /**********TEST IMPL TRIANGLE AND SEGMENT *********/
 
     //segment to generate the intersection
@@ -375,11 +507,11 @@ int main(int argc, char **argv) {
     const std::vector<bigrational> s1 = {bigrational(0.5), bigrational(0.6), bigrational(1.0)};
 
     //test
-    auto result_segment = segment_triangle_intersect_3d(&s0[0], &s1[0], &P0_rational[0], &P1_rational[0], &P2_rational[0]);
+   /* auto result_segment = segment_triangle_intersect_3d(&s0[0], &s1[0], &P0_rational[0], &P1_rational[0], &P2_rational[0]);
 
     std::cout << "Result Segment Triangle: " << result_segment << std::endl;
-
-
+*/
+/*
     bigrational intersect_point[3];
     plane_line_intersection(&P0_rational[0], &P1_rational[0], &P2_rational[0], &s0[0], &s1[0], intersect_point);
 
@@ -411,6 +543,6 @@ int main(int argc, char **argv) {
 
 
     return 0;
-
+*/
 }
 

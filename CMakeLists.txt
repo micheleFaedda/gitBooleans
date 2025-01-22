@@ -67,6 +67,25 @@ target_compile_definitions(${PROJECT_NAME}_tests PUBLIC TBB_PARALLEL=1)
 target_include_directories(${PROJECT_NAME}_tests PUBLIC ${PROJECT_SOURCE_DIR}/arrangements/external/abseil-cpp/)
 target_include_directories(${PROJECT_NAME}_tests PUBLIC ${PROJECT_SOURCE_DIR}/arrangements/external/oneTBB/)
 
+# add the executable
+add_executable(${PROJECT_NAME}_parse_diff main_parse_diff.cpp
+        code/intersect_custom.h code/intersect_custom.cpp
+        code/intersect_point_rationals.h code/intersect_point_rationals.cpp)
+
+target_include_directories(${PROJECT_NAME}_parse_diff PUBLIC
+        ./
+        code/
+        mesh_booleans/
+        arrangements/code/
+        arrangements/external/Indirect_Predicates/include/
+)
+
+target_link_libraries(${PROJECT_NAME}_parse_diff cinolib)
+target_link_libraries(${PROJECT_NAME}_parse_diff tbb)
+target_compile_definitions(${PROJECT_NAME}_parse_diff PUBLIC TBB_PARALLEL=1)
+target_include_directories(${PROJECT_NAME}_parse_diff PUBLIC ${PROJECT_SOURCE_DIR}/arrangements/external/abseil-cpp/)
+target_include_directories(${PROJECT_NAME}_parse_diff PUBLIC ${PROJECT_SOURCE_DIR}/arrangements/external/oneTBB/)
+
 # Compiler-specific options
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     # grant IEEE 754 compliance

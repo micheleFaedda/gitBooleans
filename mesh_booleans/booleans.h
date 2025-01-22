@@ -46,6 +46,7 @@
 #include <cinolib/octree.h>
 #include "intersect_custom.h"
 #include "code/intersect_point_rationals.h"
+#include <regex>
 
 #include <bitset>
 
@@ -139,7 +140,6 @@ inline void computeSinglePatch(FastTrimesh &tm, uint seed_t, const Labels &label
 inline void computeSinglePatch(FastTrimesh &tm, uint seed_t, const Labels &labels, phmap::flat_hash_set<uint> &patch, const std::vector<std::array<uint, 3>>& adjT2E);
 
 inline void findRayEndpoints(const FastTrimesh &tm, const phmap::flat_hash_set<uint> &patch, const cinolib::vec3d &max_coords, Ray &ray);
-inline void findRayEndpointsCustom(const FastTrimesh &tm, const phmap::flat_hash_set<uint> &patch, const cinolib::vec3d &max_coords, Ray &ray, RationalRay &rational_ray);
 
 inline bool intersects_box(const cinolib::Octree& tree, const cinolib::AABB & b, phmap::flat_hash_set<uint> & ids);
 
@@ -176,56 +176,27 @@ inline Ray perturbYRay(const Ray &ray, uint offset);
 
 inline Ray perturbZRay(const Ray &ray, uint offset);
 
-inline Ray perturbXRay(const RationalRay &ray, uint offset);
-inline Ray perturbYRay(const RationalRay &ray, uint offset);
-inline Ray perturbZRay(const RationalRay &ray, uint offset);
 
 inline int perturbRayAndFindIntersTri(const Ray &ray, const std::vector<genericPoint*> &in_verts, const std::vector<uint> &in_tris,
                                        const std::vector<uint> &tris_to_test);
 
-inline int perturbRayAndFindIntersTri(const RationalRay &ray, const std::vector<genericPoint*> &in_verts, const std::vector<uint> &in_tris,
-                                      const std::vector<uint> &tris_to_test);
-
-
-inline int perturbRayAndFindIntersTri(const RationalRay &ray, const std::vector<genericPoint*> &in_verts, const std::vector<uint> &in_tris,
-                                      const std::vector<uint> &tris_to_test);
-
 inline IntersInfo fast2DCheckIntersectionOnRay(const Ray &ray, const explicitPoint3D &tv0, const explicitPoint3D &tv1, const explicitPoint3D &tv2);
 
-/****************************************************************/
-// custom functions
-inline IntersInfo fast2DCheckIntersectionOnRayRationals(const RationalRay &ray, const std::vector<bigrational> &tv0, const std::vector<bigrational> &tv1, const std::vector<bigrational> &tv2);
-/****************************************************************/
+
 
 inline bool checkIntersectionInsideTriangle3D(const Ray &ray, const explicitPoint3D &tv0, const explicitPoint3D &tv1, const explicitPoint3D &tv2);
 
 inline bool checkIntersectionInsideTriangle3DImplPoints(const Ray &ray, const genericPoint *tv0, const genericPoint *tv1, const genericPoint *tv2);
-/***********************************************/
+
 // custom functions
 inline bool checkIntersectionInsideTriangle3DImplPoints(const Ray &ray, const std::vector<bigrational> &tv0, const std::vector<bigrational> &tv1, const std::vector<bigrational> &tv2);
-/***********************************************/
-/***********************************************/
-// custom functions
-inline void findIntersectionsAlongRayRationals(const FastTrimesh &tm, const std::vector<phmap::flat_hash_set<uint>> &patches, const cinolib::Octree& tree, const std::vector<genericPoint *> &in_verts,
-                                               const std::vector<std::bitset<NBIT>> &in_labels, Labels &labels, const RationalRay &rational_ray,
-                                               uint curr_p_id, phmap::flat_hash_set<uint> &tmp_inters, std::vector<IntersectionPointRationals> &inter_rat);
-/***********************************************/
-
 
 inline bool checkIntersectionInsideTriangle3D(const Ray &ray, const explicitPoint3D &tv0, const explicitPoint3D &tv1, const explicitPoint3D &tv2);
-/**************************************************/
-// custom functions
-inline bool checkIntersectionInsideTriangle3DRationals(const RationalRay &ray, const std::vector<bigrational> &tv0, const std::vector<bigrational> &tv1, const std::vector<bigrational> &tv2);
-inline uint checkTriangleOrientationRationals(const RationalRay &ray, const std::vector<bigrational> &tv0, const std::vector<bigrational> &tv1, const std::vector<bigrational> &tv2);
-inline void pruneIntersectionsAndSortAlongRayRationals(const RationalRay &ray, const FastTrimesh &tm, const std::vector<genericPoint*> &in_verts,
-                                                       const std::vector<uint> &in_tris, const std::vector<std::bitset<NBIT>> &in_labels,
-                                                       const phmap::flat_hash_set<uint> &tmp_inters, const std::bitset<NBIT> &patch_surface_label, std::vector<IntersectionPointRationals> &inter_rat, std::vector<uint> &inters_tris_rat, Labels &labels);
-inline void analyzeSortedIntersectionsRationals(const RationalRay &rational_ray, const FastTrimesh &tm, const std::vector<genericPoint*> &in_verts,
-                                                std::vector<IntersectionPointRationals> &inter_rat, std::bitset<NBIT> &patch_inner_label, Labels &labels);
-/**************************************************/
 
 inline void sortIntersectedTrisAlongX(const Ray &ray, const std::vector<genericPoint*> &in_verts,
                                       const std::vector<uint> &in_tris, std::vector<uint> &inters_tris);
+
+
 
 inline void sortIntersectedTrisAlongY(const Ray &ray, const std::vector<genericPoint*> &in_verts,
                                       const std::vector<uint> &in_tris, std::vector<uint> &inters_tris);
@@ -264,9 +235,58 @@ inline void loadInputWithLabels(const std::string &filename, std::vector<double>
 inline void loadInputWithLabels(const std::string &filename, std::vector<double> &coords, std::vector<uint> &tris, std::vector<uint> &labels);
 
 
+
+///::::::::::::::::::: RATIONALS FUNCTIONS ::::::::::::::::::::::::::::::::::::::::::
+
+inline void findRayEndpointsCustom(const FastTrimesh &tm, const phmap::flat_hash_set<uint> &patch, const cinolib::vec3d &max_coords, Ray &ray, RationalRay &rational_ray, const std::vector<genericPoint *> &in_verts, std::vector<bigrational> &in_verts_rational, bool &is_rational, bool debug);
+
+inline void findIntersectionsAlongRayRationals(const FastTrimesh &tm, const std::vector<phmap::flat_hash_set<uint>> &patches, const cinolib::Octree& tree, const std::vector<genericPoint *> &in_verts,
+                                               const std::vector<std::bitset<NBIT>> &in_labels, Labels &labels, const RationalRay &rational_ray,
+                                               uint curr_p_id, phmap::flat_hash_set<uint> &tmp_inters, std::vector<IntersectionPointRationals> &inter_rat, std::vector<bigrational> &in_verts_rational, const std::vector<uint> &in_tris);
+
+inline IntersInfo fast2DCheckIntersectionOnRayRationals(const RationalRay &ray, const std::vector<bigrational> &tv0, const std::vector<bigrational> &tv1, const std::vector<bigrational> &tv2);
+
+inline bool checkIntersectionInsideTriangle3DRationals(const RationalRay &ray, const std::vector<bigrational> &tv0, const std::vector<bigrational> &tv1, const std::vector<bigrational> &tv2);
+inline uint checkTriangleOrientationRationals(const RationalRay &ray, const std::vector<bigrational> &tv0, const std::vector<bigrational> &tv1, const std::vector<bigrational> &tv2);
+
+inline void pruneIntersectionsAndSortAlongRayRationals(const RationalRay &ray, const FastTrimesh &tm, const std::vector<genericPoint*> &in_verts,
+                                                       const std::vector<uint> &in_tris, const std::vector<std::bitset<NBIT>> &in_labels,
+                                                       const phmap::flat_hash_set<uint> &tmp_inters, const std::bitset<NBIT> &patch_surface_label,
+                                                       std::vector<IntersectionPointRationals> &inter_rat, std::vector<uint> &inters_tris_rat, Labels &labels, std::bitset<NBIT> &patch_surface_label_tmp,
+                                                       const std::vector<phmap::flat_hash_set<uint>> &patches, std::vector<bigrational> &in_verts_rational);
+inline void analyzeSortedIntersectionsRationals(const RationalRay &rational_ray, const FastTrimesh &tm, const std::vector<genericPoint*> &in_verts,
+                                                std::vector<IntersectionPointRationals> &inter_rat, std::bitset<NBIT> &patch_inner_label, Labels &labels, const std::vector<std::bitset<NBIT>> &in_labels,
+                                                std::vector<bigrational> &in_verts_rational, const std::vector<uint> &in_tris);
+
+inline uint perturbRayAndFindIntersTriRationals(const RationalRay &ray, const std::vector<genericPoint*> &in_verts, const std::vector<uint> &in_tris,
+                                                const std::vector<uint> &tris_to_test);
+
+inline bigrational next_after(const bigrational& x, const bigrational& target);
+
+inline uint findPatchIdByTriId(const std::vector<phmap::flat_hash_set<uint>> &patches, uint t_id);
+inline IntersectionPointRationals findIntersectPointByTriIdRationals(RationalRay ray, const std::vector<genericPoint*> &in_verts, const std::vector<uint> &in_tris, const std::vector<phmap::flat_hash_set<uint>> &patches, uint t_id);
+
+inline RationalRay perturbXRayRationals(const RationalRay &ray, uint offset);
+inline RationalRay perturbYRayRationals(const RationalRay &ray, uint offset);
+inline RationalRay perturbZRayRationals(const RationalRay &ray, uint offset);
+
+
 ////::::::::::: DEBUG CUSTOM ::::::::::::::::::::::::::::::::::::::::::::::::::::::
 inline void printInfoTriangleRationals(RationalRay &rational_ray, std::vector <bigrational> &tv0_aux, std::vector <bigrational> &tv1_aux, std::vector <bigrational> &tv2_aux,
                                        uint *tv_aux, uint &t_id, bool &print_ray);
+
+
+///::::::::: DEUBUG PARSER DIFF :::::::::::::::::::::::::::::::::::::::::::::::::::
+bool parseFileToParts(const std::string& filename,
+                      std::vector<std::vector<std::vector<unsigned int>>>& parts_to_color,
+                      bool debug_impl);
+
+void savePartsToFile(const std::vector<std::vector<std::vector<unsigned int>>>& parts_to_color,
+                     const std::string& filename,
+                     bool debug_impl);
+
+void savePatchesTriangles(const std::string& filename, const std::vector<int>& p_ids, const std::vector<phmap::flat_hash_set<uint>>& patches);
+bool parsePatches(const std::string& filename, std::vector<phmap::flat_hash_set<uint>>& patches);
 
 #include "booleans.cpp"
 
