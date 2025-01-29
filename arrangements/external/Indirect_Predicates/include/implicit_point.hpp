@@ -1070,6 +1070,31 @@ inline int maxComponentInTriangleNormal_filteredRationals(bigrational ov1x, bigr
     if (nv == nvxc) return 0;
     return 1;
 }
+
+inline int maxComponentInTriangleNormal_rational(
+        const bigrational& ov1x, const bigrational& ov1y, const bigrational& ov1z,
+        const bigrational& ov2x, const bigrational& ov2y, const bigrational& ov2z,
+        const bigrational& ov3x, const bigrational& ov3y, const bigrational& ov3z)
+{
+    bigrational v3x = ov3x - ov2x;
+    bigrational v3y = ov3y - ov2y;
+    bigrational v3z = ov3z - ov2z;
+    bigrational v2x = ov2x - ov1x;
+    bigrational v2y = ov2y - ov1y;
+    bigrational v2z = ov2z - ov1z;
+
+    bigrational nvx = v2y * v3z - v2z * v3y;
+    bigrational nvy = v3x * v2z - v3z * v2x;
+    bigrational nvz = v2x * v3y - v2y * v3x;
+
+    bigrational nvxc = nvx < bigrational() ? -nvx : nvx;
+    bigrational nvyc = nvy < bigrational() ? -nvy : nvy;
+    bigrational nvzc = nvz < bigrational() ? -nvz : nvz;
+
+    if (nvxc >= nvyc && nvxc >= nvzc) return 0;
+    if (nvyc >= nvxc && nvyc >= nvzc) return 1;
+    return 2;
+}
 /*
 inline int maxComponentInTriangleNormal_exact(double ov1x, double ov1y, double ov1z, double ov2x, double ov2y, double ov2z, double ov3x, double ov3y, double ov3z)
 {
@@ -1118,7 +1143,8 @@ inline int maxComponentInTriangleNormal_exact(double ov1x, double ov1y, double o
 
 inline int maxComponentInTriangleNormalRationals(bigrational ov1x, bigrational ov1y, bigrational ov1z, bigrational ov2x, bigrational ov2y, bigrational ov2z, bigrational ov3x, bigrational ov3y, bigrational ov3z)
 {
-    return maxComponentInTriangleNormal_filteredRationals(ov1x, ov1y, ov1z, ov2x, ov2y, ov2z, ov3x, ov3y, ov3z);
+    //return maxComponentInTriangleNormal_filteredRationals(ov1x, ov1y, ov1z, ov2x, ov2y, ov2z, ov3x, ov3y, ov3z);
+    return maxComponentInTriangleNormal_rational(ov1x, ov1y, ov1z, ov2x, ov2y, ov2z, ov3x, ov3y, ov3z);
 }
 
 

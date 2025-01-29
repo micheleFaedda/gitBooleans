@@ -12,6 +12,8 @@
 #include <cinolib/gl/glcanvas.h>
 #include <cinolib/gl/surface_mesh_controls.h>
 #include <cinolib/drawable_triangle_soup.h>
+#include <cinolib/profiler.h>
+#include <intersect_point_rationals.h>
 using namespace cinolib;
 void savePartsToFile(const std::vector<std::vector<std::vector<unsigned int>>>& parts_to_color,
                      const std::string& filename,
@@ -108,6 +110,67 @@ bool parseFileToParts(const std::string& filename,
 
 
 int main(int argc, char **argv) {
+
+    std::cout.precision(18);
+    std::cout << std::numeric_limits<double>::max() << std::endl;
+
+    cinolib::mat3d m = cinolib::mat3d::ROT_3D(cinolib::vec3d(3123, 432533, 424396), cinolib::to_rad(32.7));
+
+    cinolib::vec3d v0(0, 0, 0);
+    cinolib::vec3d v1(1, 0, 0);
+    cinolib::vec3d v2(0, 1, 0);
+
+
+     cinolib::vec3d ray0(0.2, 0.2, -1);
+     cinolib::vec3d ray1(0.2, 0.2, 1);
+
+     v0 = m * v0;
+     v1 = m * v1;
+     v2 = m * v2;
+
+     ray0 = m * ray0;
+     ray1 = m * ray1;
+
+     bigrational x0(v0.x());
+     bigrational y0(v0.y());
+     bigrational z0(v0.z());
+
+    bigrational x1(v1.x());
+    bigrational y1(v1.y());
+    bigrational z1(v1.z());
+
+    bigrational x2(v2.x());
+    bigrational y2(v2.y());
+    bigrational z2(v2.z());
+
+    bigrational x0_ray(ray0.x());
+    bigrational y0_ray(ray0.y());
+    bigrational z0_ray(ray0.z());
+
+    bigrational x1_ray(ray1.x());
+    bigrational y1_ray(ray1.y());
+    bigrational z1_ray(ray1.z());
+
+    std::vector<bigrational> t0 = {x0, y0, z0};
+    std::vector<bigrational> t1 = {x1, y1, z1};
+    std::vector<bigrational> t2 = {x2, y2, z2};
+
+    std::vector<bigrational> ray0_v0 = {x0_ray, y0_ray, z0_ray};
+    std::vector<bigrational> ray1_v1 = {x1_ray, y1_ray, z1_ray};
+
+    std::cout << "Triangle: " << x1 << std::endl;
+    std::cout << "Ray " << ray0_v0[0] << " " << ray0_v0[1] << " " << ray0_v0[2] << std::endl;
+
+    Profiler p;
+    p.push("Total time");
+    bool intersection;
+    for(int i = 0 ; i < 10000; ++i){
+     intersection = segment_triangle_intersect_3d(&ray0_v0[0], &ray1_v1[0], &t0[0], &t1[0], &t2[0]);
+    }
+    p.pop();
+    std::cout << "Intersection: " << intersection << std::endl;
+
+
 
     std::vector<std::vector<std::vector<unsigned int>>> parts_to_color = {
             {{0, 1, 2}, {3, 4, 5}}, // GRAY Parts

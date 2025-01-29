@@ -7,7 +7,7 @@
 #include <cinolib/meshes/meshes.h>
 #include <cinolib/gl/glcanvas.h>
 #include <cinolib/gl/surface_mesh_controls.h>
-
+#include <arrangements/external/Indirect_Predicates/include/implicit_point.h>
 #include <mesh_booleans/booleans.h>
 #include <arrangements/code/processing.h>
 
@@ -32,18 +32,18 @@ int main(int argc, char **argv)
         file_path2 = argv[2];
     }else{
         //file_path = "../data/test/Horse/Horse_conv/horse0.obj";
-        //file_path = "../data/t0.obj";
-        file_path = "../data/mostro0.obj";
+        file_path = "../data/t1.obj";
+        //file_path = "../data/mostro0.obj";
         //file_path = "../data/test/cube.obj";
         //file_path2 = "../data/test/Horse/Horse_conv/horse1.obj";
-        file_path2 = "../data/mostro1.obj";
-        //file_path2 = "../data/t1.obj";
+        //file_path2 = "../data/mostro1.obj";
+        file_path2 = "../data/t3.obj";
         //file_path2 = "../data/test/pyramid_transform.obj";
 
     }
-    string name = "mostro0_1";
+    string name = "t1_t3";
 
-    string file_out = "diff_cube_"+name+".obj";
+    string file_out = "diff_"+name+".obj";
     string file_parts_to_color = "parts_to_color_"+name+".txt";
     string file_patches = name+".txt";
 
@@ -63,7 +63,7 @@ int main(int argc, char **argv)
     //start timer
     loadMultipleFiles(files, in_coords, in_tris, in_labels);
 
-    cinolib::write_OBJ("input_error.obj", in_coords, in_tris, {});
+    cinolib::write_OBJ("input_error_CUBE.obj", in_coords, in_tris, {});
 
     //booleanPipeline(in_coords, in_tris, in_labels, op, bool_coords, bool_tris, bool_labels);
 
@@ -78,9 +78,22 @@ int main(int argc, char **argv)
     std::vector<phmap::flat_hash_set<uint>> patches;
     cinolib::Octree octree; // built with arr_in_tris and arr_in_labels
 
+
+    //print the size of arr_in_tris, arr_in_labels, arr_out_tris
+    std::cout << "arr_in_tris size: " << arr_in_tris.size() << std::endl;
+    std::cout << "arr_in_labels size: " << arr_in_labels.size() << std::endl;
+    std::cout << "arr_out_tris size: " << arr_out_tris.size() << std::endl;
+    std::cout << "in_coords size: " << in_coords.size() << std::endl;
+    std::cout << "arr_verts size: " << arr_verts.size() << std::endl;
+
     customArrangementPipeline(in_coords, in_tris, in_labels, arr_in_tris, arr_in_labels, arena, arr_verts,
                               arr_out_tris, labels, octree, dupl_triangles);
-
+//print the size of arr_in_tris, arr_in_labels, arr_out_tris
+    std::cout << "arr_in_tris size: " << arr_in_tris.size() << std::endl;
+    std::cout << "arr_in_labels size: " << arr_in_labels.size() << std::endl;
+    std::cout << "arr_out_tris size: " << arr_out_tris.size() << std::endl;
+    std::cout << "in_coords size: " << in_coords.size() << std::endl;
+    std::cout << "arr_verts size: " << arr_verts.size() << std::endl;
 
 
     //customBooleanPipeline(arr_verts, arr_in_tris, arr_out_tris, arr_in_labels, dupl_triangles, labels, patches, octree, op, bool_coords, bool_tris, bool_labels);
@@ -92,6 +105,7 @@ int main(int argc, char **argv)
     // the informations about duplicated triangles (removed in arrangements) are restored in the original structures
     addDuplicateTrisInfoInStructures(dupl_triangles, arr_in_tris, arr_in_labels, octree);
 
+
     // parse patches with octree and rays
     cinolib::vec3d max_coords(octree.root->bbox.max.x() +0.5, octree.root->bbox.max.y() +0.5, octree.root->bbox.max.z() +0.5);
     computeInsideOut(tm, patches, octree, arr_verts, arr_in_tris, arr_in_labels, max_coords, labels);
@@ -101,7 +115,7 @@ int main(int argc, char **argv)
     //DIFF CODE
     std::vector<std::vector<std::vector<uint>>> parts_to_color;
     std::vector<int> num_tri_to_color_per_part;
-    uint num_parts = debug_impl ? 4 : 3 ;
+    uint num_parts = debug_impl ? 5 : 4 ;
     parts_to_color.resize(num_parts);
     num_tri_to_color_per_part.resize(num_parts);
 
@@ -110,6 +124,15 @@ int main(int argc, char **argv)
 
     vector<int> p_ids;
 
+    /*for(uint t_id = 0; t_id < tm.numTris(); ++t_id) {
+        tm.setTriInfo(t_id, 1);
+        num_tris_in_final_result++;
+        num_tri_to_color_per_part[0]++;
+
+    }
+    for(uint p_id = 0; p_id < patches.size(); ++p_id){
+            p_ids.push_back(p_id);
+    }*/
     for(uint t_id = 0 ; t_id < tm.numTris(); ++t_id){
         if(labels.surface[t_id][1]){ //if the triangle belong to B
             if(labels.surface[t_id].count() == 2 && labels.inside[t_id].count() == 0){
@@ -151,12 +174,17 @@ int main(int argc, char **argv)
                 }
                 continue;
             }
+        }else{
+            tm.setTriInfo(t_id, 2);
+            num_tris_in_final_result++;
+            num_tri_to_color_per_part[3]++;
+            continue;
         }
 
         if(debug_impl && labels.surface[t_id][0]){
             tm.setTriInfo(t_id, 1);
             num_tris_in_final_result++;
-            num_tri_to_color_per_part[3]++;
+            num_tri_to_color_per_part[5]++;
             for(uint p_id = 0; p_id < patches.size(); ++p_id){
                 if(patches[p_id].contains(t_id)){
                     p_ids.push_back(p_id);
@@ -165,7 +193,6 @@ int main(int argc, char **argv)
             }
         }
     }
-
     //remove duplicates in p_ids
     std::sort(p_ids.begin(), p_ids.end());
     p_ids.erase(std::unique(p_ids.begin(), p_ids.end()), p_ids.end());
@@ -180,10 +207,8 @@ int main(int argc, char **argv)
 
     /******************************************************************************************************/
 
-    //computeFinalExplicitResult(tm, labels, num_tris_in_final_solution, bool_coords, bool_tris, bool_labels, true);c
+    //computeFinalExplicitResult(tm, labels, num_tris_in_final_solution, bool_coords, bool_tris, bool_labels, true);
 
-    uint num_vertices = 0;
-    std::vector<int>  vertex_index(tm.numVerts(), -1);
     bool_tris.resize(num_tris_in_final_result * 3);
     bool_labels.resize(num_tris_in_final_result);
 
@@ -199,6 +224,8 @@ int main(int argc, char **argv)
             parts_to_color[i][j].reserve(3);
     }
 */
+    std::vector<int>  vertex_index(tm.numVerts(), -1);
+    uint num_vertices = 0;
     uint tri_offset = 0;
 
     for(uint t_id = 0; t_id < tm.numTris(); t_id++)
@@ -226,24 +253,29 @@ int main(int argc, char **argv)
                 break;
             }
         }*/
+        //parts_to_color[0].push_back(vert_to_color);
 
         if(labels.surface[t_id][1]){ //if the triangle belong to B
             if(labels.surface[t_id].count() == 2 && labels.inside[t_id].count() == 0){
                 //TODO: GRAY PARTS
                 parts_to_color[0].push_back(vert_to_color);
 
+
             }else if(labels.inside[t_id][0]){ //parts of B inside A
                 //TODO: RED PARTS
                 parts_to_color[1].push_back(vert_to_color);
+
 
             }else if(!labels.inside[t_id][0]){
                 //TODO: GREEN PARTS
                 parts_to_color[2].push_back(vert_to_color);
             }
+        }else{
+            parts_to_color[3].push_back(vert_to_color);
         }
 
         if(labels.surface[t_id][0] && debug_impl){
-            parts_to_color[3].push_back(vert_to_color);
+            parts_to_color[4].push_back(vert_to_color);
         }
 
         bool_labels[tri_offset] = labels.surface[t_id];
@@ -271,25 +303,63 @@ int main(int argc, char **argv)
     //save the green, gray and red parts in a file to be used in the GUI
 
     //create the file with name parts_to_color +
-    savePartsToFile(parts_to_color,
-                    "/Users/michele/Documents/GitHub/gitBooleans/results/debug/parts_to_color_" + file_parts_to_color,debug_impl);
+    //savePartsToFile(parts_to_color,
+                   // "/Users/michele/Documents/GitHub/gitBooleans/results/debug/parts_to_color_" + file_parts_to_color,debug_impl);
 
-    savePatchesTriangles("/Users/michele/Documents/GitHub/gitBooleans/results/debug/patches_" + file_patches,
-                         p_ids, patches);
+    //savePatchesTriangles("/Users/michele/Documents/GitHub/gitBooleans/results/debug/patches_" + file_patches,
+                     //    p_ids, patches);
 
+
+    ///____________ GUI _____________________________________________________________________________________________
     GLcanvas gui;
     DrawableTrimesh<> m(bool_coords, bool_tris);
-    SurfaceMeshControls<DrawableTrimesh<>> controls(&m, &gui,file_out.c_str());
+    SurfaceMeshControls<DrawableTrimesh<>> mesh_controls (&m, &gui,file_out.c_str());
 
     gui.push(&m);
-    gui.push(&controls);
+    gui.push(&mesh_controls);
+    Marker point;
+    int point_id = -1;
 
+    double step = 0.1;        // Small step
+    double step_fast = 1.0;   // Large step
+    const char* format = "%.6f"; // Format with six decimal places
+
+    double x_pos = 0.0;
+    double y_pos = 0.0;
+    double z_pos = 0.0;
+
+    int exp_x_v0 = 0;
+    int exp_y_v0 = 0;
+    int exp_z_v0 = 0;
 
     int t_deb;
     int p = -1;
+    Marker v0, v1, v2;
+
+    static int selected_item = 0;
+    const char* items[] = { "Patch Analysis", "Show Triangle", "Pick Vertex", "Diff Analysis", "Ray Analysis", "Push Point", "Reset", "Pick Triangle" };
+    const int items_count = sizeof(items) / sizeof(items[0]);
+
+
 
     gui.callback_app_controls = [&]()
     {
+        if (ImGui::BeginCombo("Seleziona un'opzione", items[selected_item]))
+        {
+            for (int i = 0; i < items_count; i++)
+            {
+                bool is_selected = (selected_item == i);
+                if (ImGui::Selectable(items[i], is_selected))
+                {
+                    selected_item = i; // Aggiorna l'elemento selezionato
+                }
+                if (is_selected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndCombo();
+        }
+
+        if(selected_item == 0){
         if(ImGui::Button("Next Patch"))
         {
             // button clicked: do something
@@ -304,28 +374,31 @@ int main(int argc, char **argv)
                 std::cout << "Triangle patch: " << print << std::endl;
             }
 
-            for(uint t_id : patches.at(p_ids.at(p))){
+            for(uint t_id : patches.at(p)){
 
                 uint v0 = bool_tris.at(t_id*3);
                 uint v1 = bool_tris.at(t_id*3+1);
                 uint v2 = bool_tris.at(t_id*3+2);
 
-                std::cout << "Triangle: " << bool_tris.at(t_id*3) << " " << bool_tris.at(t_id*3+1) << " " << bool_tris.at(t_id*3+2) << std::endl;
-                int p_id = m.poly_id({v0, v1, v2});
-                m.poly_data(p_id).color = cinolib::Color(cinolib::Color::YELLOW());
+                std::cout << "Triangle: " << bool_tris.at(t_id*3) << " " << bool_tris.at(t_id*3+1) << " " << bool_tris.at(t_id*3+2) << std::endl;;
+                m.poly_data(t_id).color = cinolib::Color(cinolib::Color::YELLOW());
                 //}
             }
             if(p == patches.size()-1){
                 p = -1;
             }
             m.updateGL();
+            }
         }
+        if(selected_item == 6){
         if(ImGui::Button("Reset")){
             for(uint i = 0; i < m.num_polys(); ++i){
                 m.poly_data(i).color = cinolib::Color(cinolib::Color::WHITE());
             }
             m.updateGL();
         }
+        }
+        if(selected_item == 3){
         if(ImGui::Button("Show Diff")){
             for(uint i = 0; i < parts_to_color.size(); ++i) {
                 for (uint j = 0; j < parts_to_color[i].size(); ++j) {
@@ -339,14 +412,18 @@ int main(int argc, char **argv)
                             m.poly_data(t_id).color = Color(201/255.f,79/255.f,86/255.f);
                     } else if(i == 2){  //GREEN
                         m.poly_data(t_id).color = Color(122/255.f,239/255.f,72/255.f);
-                    } else if (debug_impl && i==3){ //WHITE TRANSPARENT
-                        m.poly_data(t_id).color = Color(255/255.f,255/255.f,255/255.f,0.9f);
+                    } else if (i==3){ //WHITE TRANSPARENT
+                        m.poly_data(t_id).color = Color(255/255.f,255/255.f,255/255.f,0.0f);
+                    } else if (debug_impl && i==4) { //WHITE TRANSPARENT
+                        m.poly_data(t_id).color = Color(255 / 255.f, 255 / 255.f, 255 / 255.f, 0.9f);
                     }
                 }
             }
             m.updateGL();
         }
-        if(ImGui::InputInt("Text Input", &t_deb, 0, m.num_verts())){
+        }
+        if(selected_item == 1){
+        if(ImGui::InputInt("Triangle id", &t_deb, 0, m.num_verts())){
             for(uint i = 0; i < m.num_polys(); ++i){
                 //m.poly_data(i).color = cinolib::Color(cinolib::Color::WHITE());
                 m.poly_data(i).color = cinolib::Color(1.0f,1.0f,1.0f,0.0f);
@@ -360,7 +437,98 @@ int main(int argc, char **argv)
             gui.push(marker);
             m.updateGL();
         }
+        }
+        if(selected_item == 5){
+        if(ImGui::InputDouble("x vert", &x_pos, step, step_fast, format)){
+
+        }
+        if(ImGui::InputInt("Exp x vert", &exp_x_v0, 0, m.num_verts())){
+
+        }
+        if(ImGui::InputDouble("y vert", &y_pos, step, step_fast, format)){
+
+        }
+        if(ImGui::InputInt("y vert", &exp_y_v0, 0, m.num_verts())){
+
+        }
+        if(ImGui::InputDouble("z vert", &z_pos, step, step_fast, format)){
+
+        }
+        if(ImGui::InputInt("Exp z vert", &exp_z_v0, 0, m.num_verts())){
+
+        }
+
+        if(ImGui::Button("Push point")){
+
+            point.pos_3d = vec3d(x_pos * pow(10, exp_x_v0), y_pos * pow(10, exp_y_v0), z_pos * pow(10, exp_z_v0));
+            point.text = std::to_string(point_id);
+            point.disk_radius = 0.4f;
+            point.color = Color::RED();
+            gui.push(point);
+            m.updateGL();
+
+        }
+    }
+
+        gui.callback_mouse_right_click = [&](int modifiers) -> bool
+        {
+            if(selected_item == 7) {
+                if (modifiers & GLFW_MOD_SHIFT) {
+                    vec3d p;
+                    vec2d click = gui.cursor_pos();
+                    if (gui.unproject(click, p)) // transform click in a 3d point
+                    {
+                        uint pid = m.pick_poly(p);
+
+                        if (m.poly_data(pid).color == cinolib::Color::RED()) {
+                            m.poly_data(pid).color = cinolib::Color::WHITE();
+                            gui.pop_all_markers();
+
+                        } else {
+
+                            m.poly_data(pid).color = cinolib::Color::RED();
+                            explicitPoint3D v0_exp = tm.vert(m.poly_vert_id(pid, 0))->toExplicit3D();
+                            explicitPoint3D v1_exp = tm.vert(m.poly_vert_id(pid, 1))->toExplicit3D();
+                            explicitPoint3D v2_exp = tm.vert(m.poly_vert_id(pid, 2))->toExplicit3D();
+
+                            std::cout << "v0: " << v0_exp.X() << " " << v0_exp.Y() << " " << v0_exp.Z() << std::endl;
+                            std::cout << "v1: " << v1_exp.X() << " " << v1_exp.Y() << " " << v1_exp.Z() << std::endl;
+                            std::cout << "v2: " << v2_exp.X() << " " << v2_exp.Y() << " " << v2_exp.Z() << std::endl;
+
+                            v0.pos_3d = m.vert(m.poly_vert_id(pid, 0));
+                            v0.text = "v0";
+                            v0.disk_radius = 0.3f;
+                            v0.color = Color::BLUE();
+
+                            v1.pos_3d = m.vert(m.poly_vert_id(pid, 1));
+                            v1.text = "v1";
+                            v1.disk_radius = 0.3f;
+                            v1.color = Color::BLACK();
+
+                            v2.pos_3d = m.vert(m.poly_vert_id(pid, 2));
+                            v2.text = "v2";
+                            v2.disk_radius = 0.3f;
+                            v2.color = Color::GREEN();
+
+                            gui.push(v0);
+                            gui.push(v1);
+                            gui.push(v2);
+
+                            tm.vert(m.poly_vert_id(pid, 1))->toExplicit3D();
+
+                            m.vert_data(m.poly_vert_id(pid, 1)).color = Color::BLACK();
+                            m.vert_data(m.poly_vert_id(pid, 2)).color = Color::GREEN();
+
+                        }
+                        m.updateGL();
+                    }
+                }
+                return false;
+            }
+        };
     };
+
+
 
     m.updateGL();
 

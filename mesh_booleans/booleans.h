@@ -258,8 +258,8 @@ inline void analyzeSortedIntersectionsRationals(const RationalRay &rational_ray,
                                                 std::vector<IntersectionPointRationals> &inter_rat, std::bitset<NBIT> &patch_inner_label, Labels &labels, const std::vector<std::bitset<NBIT>> &in_labels,
                                                 std::vector<bigrational> &in_verts_rational, const std::vector<uint> &in_tris);
 
-inline uint perturbRayAndFindIntersTriRationals(const RationalRay &ray, const std::vector<genericPoint*> &in_verts, const std::vector<uint> &in_tris,
-                                                const std::vector<uint> &tris_to_test);
+inline int perturbRayAndFindIntersTriRationals(const RationalRay &ray, const std::vector<genericPoint*> &in_verts, const std::vector<uint> &in_tris,
+                                                const std::vector<uint> &tris_to_test, std::vector<bigrational> &in_verts_rational);
 
 inline bigrational next_after(const bigrational& x, const bigrational& target);
 

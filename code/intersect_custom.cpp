@@ -291,7 +291,7 @@ SimplexIntersection segment_triangle_intersect_3d(const bigrational * s0,
     bigrational vol_s0_t = cinolib::orient3d(s0, t0, t1, t2);
     bigrational vol_s1_t = cinolib::orient3d(s1, t0, t1, t2);
 
-    if(vol_s0_t > zero_rat && vol_s1_t > zero_rat) return DO_NOT_INTERSECT; // s is above t
+    if(vol_s0_t > zero_rat && vol_s1_t > bigrational(0,0,0)) return DO_NOT_INTERSECT; // s is above t
     if(vol_s0_t < zero_rat && vol_s1_t < zero_rat) return DO_NOT_INTERSECT; // s is below t
     if(vol_s0_t.sgn() == 0 && vol_s1_t.sgn() == 0)                        // s and t are coplanar
     {
