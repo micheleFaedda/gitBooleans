@@ -1,6 +1,6 @@
 /********************************************************************************
 *  This file is part of CinoLib                                                 *
-*  Copyright(C) 2016: Marco Livesu                                              *
+*  Copyright(C) 2023: Federico Meloni                                           *
 *                                                                               *
 *  The MIT License                                                              *
 *                                                                               *
@@ -24,71 +24,43 @@
 *                                                                               *
 *  Author(s):                                                                   *
 *                                                                               *
-*     Marco Livesu (marco.livesu@gmail.com)                                     *
-*     http://pers.ge.imati.cnr.it/livesu/                                       *
+*     Federico Meloni (federico.meloni3@unica.it)                               *
 *                                                                               *
-*     Italian National Research Council (CNR)                                   *
-*     Institute for Applied Mathematics and Information Technologies (IMATI)    *
-*     Via de Marini, 6                                                          *
-*     16149 Genoa,                                                              *
+*     University of Cagliari                                                    *
+*     Via Ospedale, 72                                                          *
+*     09124 Cagliari,                                                           *
 *     Italy                                                                     *
 *********************************************************************************/
-#include <cinolib/grid_mesh.h>
-#include <cinolib/serialize_index.h>
+
+#ifndef CINOLIB_READ_NODE_ELE_H
+#define CINOLIB_READ_NODE_ELE_H
+
+#include <sys/types.h>
 #include <vector>
+#include <cinolib/cino_inline.h>
+#include <cinolib/geometry/vec_mat.h>
 
 namespace cinolib
 {
 
-template<class M, class V, class E, class P>
 CINO_INLINE
-void grid_mesh(const uint nx, const uint ny, Quadmesh<M,V,E,P> & m)
-{
-    std::vector<vec3d> verts;
-    std::vector<uint>  polys;
-    for(uint x=0; x<=nx; ++x)
-    for(uint y=0; y<=ny; ++y)
-    {
-        verts.push_back(vec3d(x,y,0));
-
-        if(x<nx && y<ny)
-        {
-            polys.push_back(serialize_2D_index(x  , y,   ny+1));
-            polys.push_back(serialize_2D_index(x  , y+1, ny+1));
-            polys.push_back(serialize_2D_index(x+1, y+1, ny+1));
-            polys.push_back(serialize_2D_index(x+1, y,   ny+1));
-        }
-    }
-    m = Quadmesh<M,V,E,P>(verts, polys);
-}
+void read_NODE_ELE(const char                     * filename,
+                   std::vector<vec3d>             & verts,
+                   std::vector<std::vector<uint>> & polys,
+                   std::vector<int>               & vert_labels,
+                   std::vector<int>               & poly_labels);
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-template<class M, class V, class E, class F, class P>
 CINO_INLINE
-void grid_mesh(const uint nx, const uint ny, const uint nz, Hexmesh<M,V,E,F,P> & m)
-{
-    std::vector<vec3d> verts;
-    std::vector<uint>  polys;
-    for(uint x=0; x<=nx; ++x)
-    for(uint y=0; y<=ny; ++y)
-    for(uint z=0; z<=nz; ++z)
-    {
-        verts.push_back(vec3d(x,y,z));
-
-        if(x<nx && y<ny && z<nz)
-        {
-            polys.push_back(serialize_3D_index(x  , y,   z  , ny+1, nz+1));
-            polys.push_back(serialize_3D_index(x  , y+1, z  , ny+1, nz+1));
-            polys.push_back(serialize_3D_index(x+1, y+1, z  , ny+1, nz+1));
-            polys.push_back(serialize_3D_index(x+1, y,   z  , ny+1, nz+1));
-            polys.push_back(serialize_3D_index(x  , y,   z+1, ny+1, nz+1));
-            polys.push_back(serialize_3D_index(x  , y+1, z+1, ny+1, nz+1));
-            polys.push_back(serialize_3D_index(x+1, y+1, z+1, ny+1, nz+1));
-            polys.push_back(serialize_3D_index(x+1, y,   z+1, ny+1, nz+1));
-        }
-    }
-    m = Hexmesh<M,V,E,F,P>(verts, polys);
-}
+void read_NODE_ELE(const char                     * filename,
+                   std::vector<vec3d>             & verts,
+                   std::vector<std::vector<uint>> & polys);
 
 }
+
+#ifndef  CINO_STATIC_LIB
+#include "read_NODE_ELE.cpp"
+#endif
+
+#endif //CINOLIB_READ_NODE_ELE_H

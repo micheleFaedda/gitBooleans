@@ -7,6 +7,8 @@ CinoLib is a C++ library for processing polygonal and polyhedral meshes. It supp
 
 A distinctive feature of the library is that all supported meshes inherit from a unique base class that implements their common traits, permitting to deploy algorithms that operate on _abstract_ meshes that may be any of the above. This allows to implement algorithms just once and run the same code on any possible mesh, thus avoiding code duplication and reducing the debugging effort.
 
+:boom:***CinoLib received the [Symposium on Geometry Processing Software Award](http://awards.geometryprocessing.org) in 2024***:boom:
+
 <p align="center"><img src="cinolib_rep_image.png" width="500"></p>
 
 ## Positioning
@@ -126,7 +128,7 @@ The full list of callbacks exposed by `GLcanvas` to interact with user events (e
 A tutorial with detailed info on how to use the library is under developement. In the meanwhile, you can explore the [**examples**](https://github.com/mlivesu/cinolib/tree/master/examples#examples)  folder, which contains a constantly growing number of sample projects that showcase the core features of the library, and will be the backbone of the forthcoming tutorial.
 
 ## Contributors
-Marco Livesu is the creator and lead developer of the library. CinoLib has also received contributions from: Daniela Cabiddu (CNR IMATI), Claudio Mancinelli and Enrico Puppo (University of Genoa), Chrystiano Araújo (UBC), Thomas Alderighi (CNR ISTI), Fabrizio Corda (University of Cagliari), Gianmarco Cherchi (University of Cagliari) and Tommaso Sorgente (CNR IMATI).
+Marco Livesu is the creator and lead developer of the library. CinoLib has also received contributions from: Daniela Cabiddu and Tommaso Sorgente (CNR IMATI), Claudio Mancinelli and Enrico Puppo (University of Genoa), Chrystiano Araújo (UBC), Thomas Alderighi (CNR ISTI), Fabrizio Corda, Gianmarco Cherchi and Federico Meloni (University of Cagliari).
 
 ## Citing us
 If you use CinoLib in your academic projects, please consider citing the library using the following 

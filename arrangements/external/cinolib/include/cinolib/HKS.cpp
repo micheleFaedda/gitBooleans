@@ -1,6 +1,6 @@
 /********************************************************************************
 *  This file is part of CinoLib                                                 *
-*  Copyright(C) 2024: Marco Livesu                                              *
+*  Copyright(C) 2025: Marco Livesu                                              *
 *                                                                               *
 *  The MIT License                                                              *
 *                                                                               *
@@ -33,94 +33,61 @@
 *     16149 Genoa,                                                              *
 *     Italy                                                                     *
 *********************************************************************************/
-#ifndef CINO_STRIPE_EMBEDDING_H
-#define CINO_STRIPE_EMBEDDING_H
-
-#ifdef CINOLIB_USES_CGAL_GMP_MPFR
-
-#include <cinolib/meshes/drawable_trimesh.h>
-#include <mpreal.h>
-#include <cinolib/rationals.h>
+#include <cinolib/HKS.h>
+#include <cinolib/laplacian.h>
+#include <cinolib/linear_solvers.h>
+#include <cinolib/scalar_field.h>
+#include <cinolib/vertex_mass.h>
+#include <cinolib/sampling.h>
 
 namespace cinolib
 {
 
-/* Reference implementation of the article
- *
- * Stripe Embedding: Efficient Maps with Exact Numeric Computation
- * Marco Livesu
- * ACM Transactions on Graphics (SIGGRAPH Asia 2024)
- *
- * Example of usage:
- *
- *     SE_data data;
- *     data.m = input_trimesh;
- *     stripe_embedding(data);
- *
- * For interactive use, call init(data) first and then call stripe_embedding(data).
- * See the dedicated example (#48) in cinolib/examples.
-*/
-
-struct SE_data
-{
-    DrawableTrimesh<> m; // input mesh (may be refined during map generation)
-
-    // If provided, SE will use the input boundary conditions.
-    // Otherwise, it will generate a map to the polygon indicated in target_domain
-    std::map<uint,vec3d> bc;
-    int target_domain = CIRCLE;
-    std::vector<uint> boundary; // ordered boundary vertices of m
-
-    // higher precision numerical models available
-    bool use_rationals = false;
-    bool use_MPFR      = false;
-
-    mpfr_prec_t MPFR_precision = 512; // # of bits for the mantissa when MPFR is used
-
-    // embeddings with the various numerical models
-    std::vector<double>       coords_d;
-    std::vector<CGAL_Q>       coords_q;
-    std::vector<mpfr::mpreal> coords_m;
-
-    // flipped elements' count, for all supported numeric types
-    uint flips_d = 0;
-    uint flips_q = 0;
-    uint flips_m = 0;
-
-    bool initialized  = false;
-    bool stop         = false;
-    bool step_by_step = false;
-    int  step_size    = 1;
-
-    std::queue<uint> q; // stripe espansion queue
-
-    // this is only for visuals. The following vectors will be filled only if store_stripes is true
-    std::vector<uint> stripes_offset; // stripe starting index
-    std::vector<uint> stripes;        // pivot + serialized chain of vertices opposite to the pivot
-    bool store_stripes = false;
-
-    uint embedded_verts = 0;
-    std::vector<bool> embedded;
-    std::vector<int>  edge_chain_id;
-    uint fresh_id = 1;
-
-    // stats
-    float runtime     = 0;
-    bool  converged   = false;
-    uint  edge_splits = 0;
-    uint  iters       = 0;
-};
-
-//::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
+template<class M, class V, class E, class P>
 CINO_INLINE
-void stripe_embedding(SE_data & data);
+Eigen::MatrixXd HKS(      AbstractMesh<M,V,E,P> & m,
+                    const std::vector<uint>     & landmarks,
+                    const uint                    n_timesteps,
+                    const bool                    normalize_mesh,
+                    const bool                    normalize_columns,
+                    const bool                    verbose)
+{
+    if(normalize_mesh) m.normalize_bbox();
 
+    uint n_rows = m.num_verts();
+    uint n_cols = landmarks.size()*n_timesteps;
+    Eigen::MatrixXd A(n_rows,n_cols);
+
+    Eigen::SparseMatrix<double> L  = laplacian(m, COTANGENT);
+    Eigen::SparseMatrix<double> MM = mass_matrix(m);
+
+    // This is what Dorian Nogneng and Maks Ovsjanikov do in their reference code for the paper:
+    //
+    //      Informative Descriptor Preservation via Commutativity for Shape Matching
+    //      Eurographics 2017
+    //
+    std::vector<double> timesteps = sample_within_interval(log(0.005), log(0.2), n_timesteps);
+    for(uint i=0; i<n_timesteps; ++i) timesteps[i] = exp(timesteps[i]);
+
+    uint col = 0;
+    for(auto t : timesteps)
+    {
+        Eigen::SimplicialLLT<Eigen::SparseMatrix<double>> solver(MM - t*L);
+        assert(solver.info() == Eigen::Success);
+
+        for(auto v : landmarks)
+        {
+            if(verbose) std::cout << "column " << col << ": time step " << t << ", landmark " << v << std::endl;
+
+            Eigen::VectorXd rhs = Eigen::VectorXd::Zero(m.num_verts());
+            rhs[v] = 1.0;
+            ScalarField f = solver.solve(rhs).eval();
+            if(normalize_columns) f.normalize_in_01(); // Useful for visualization but "physically wrong"...
+            for(uint vid=0; vid<m.num_verts(); ++vid) A.coeffRef(vid,col) = f[vid];
+            ++col;
+        }
+    }
+    return A;
 }
 
-#ifndef  CINO_STATIC_LIB
-#include "stripe_embedding.cpp"
-#endif
-
-#endif // CINOLIB_USES_CGAL_GMP_MPFR
-#endif // CINO_STRIPE_EMBEDDING_H
+}

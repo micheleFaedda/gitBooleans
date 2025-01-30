@@ -35,11 +35,12 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         arrangements/external/Indirect_Predicates/include/
 )
 
-set(cinolib_DIR ${PROJECT_SOURCE_DIR}/arrangements/external/Cinolib)
 set(CINOLIB_USES_OPENGL_GLFW_IMGUI ON)
 set(CINOLIB_USES_SHEWCHUK_PREDICATES ON)
 set(CINOLIB_USES_CGAL_GMP_MPFR ON)
-#set(CINOLIB_USES_INDIRECT_PREDICATES ON)
+set(CINOLIB_USES_INDIRECT_PREDICATES ON)
+
+set(cinolib_DIR ${PROJECT_SOURCE_DIR}/arrangements/external/cinolib)
 
 find_package(cinolib REQUIRED)
 
