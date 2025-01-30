@@ -138,6 +138,7 @@ public:
         assert(true && "Error in findPatchIdByTriId");
     }
 
+
 };
 
 #endif //GITBOOLEANS_INTERSECT_POINT_RATIONALS_H

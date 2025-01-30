@@ -270,6 +270,8 @@ inline RationalRay perturbXRayRationals(const RationalRay &ray, uint offset);
 inline RationalRay perturbYRayRationals(const RationalRay &ray, uint offset);
 inline RationalRay perturbZRayRationals(const RationalRay &ray, uint offset);
 
+inline void eraseIntersectionPoints(std::vector<IntersectionPointRationals>& inter_rat, uint t_id_int);
+
 
 ////::::::::::: DEBUG CUSTOM ::::::::::::::::::::::::::::::::::::::::::::::::::::::
 inline void printInfoTriangleRationals(RationalRay &rational_ray, std::vector <bigrational> &tv0_aux, std::vector <bigrational> &tv1_aux, std::vector <bigrational> &tv2_aux,
@@ -283,7 +285,7 @@ bool parseFileToParts(const std::string& filename,
 
 void savePartsToFile(const std::vector<std::vector<std::vector<unsigned int>>>& parts_to_color,
                      const std::string& filename,
-                     bool debug_impl);
+                     bool debug_impl, bool patch_view);
 
 void savePatchesTriangles(const std::string& filename, const std::vector<int>& p_ids, const std::vector<phmap::flat_hash_set<uint>>& patches);
 bool parsePatches(const std::string& filename, std::vector<phmap::flat_hash_set<uint>>& patches);

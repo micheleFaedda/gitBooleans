@@ -16,6 +16,7 @@ using namespace std;
 bool debug = true;
 bool demo = false;
 bool debug_impl = false;
+bool patch_view = true;
 
 int main(int argc, char **argv)
 {
@@ -32,20 +33,20 @@ int main(int argc, char **argv)
         file_path2 = argv[2];
     }else{
         //file_path = "../data/test/Horse/Horse_conv/horse0.obj";
-        file_path = "../data/t1.obj";
-        //file_path = "../data/mostro0.obj";
+        //file_path = "../data/t1.obj";
+        file_path = "../data/mostro0.obj";
         //file_path = "../data/test/cube.obj";
         //file_path2 = "../data/test/Horse/Horse_conv/horse1.obj";
-        //file_path2 = "../data/mostro1.obj";
-        file_path2 = "../data/t3.obj";
+        file_path2 = "../data/mostro0_mod.obj";
+        //file_path2 = "../data/t2.obj";
         //file_path2 = "../data/test/pyramid_transform.obj";
 
     }
-    string name = "t1_t3";
+    string name = "mostro0_0_mod";
 
     string file_out = "diff_"+name+".obj";
     string file_parts_to_color = "parts_to_color_"+name+".txt";
-    string file_patches = name+".txt";
+    string file_patches = "patches_"+name+".txt";
 
     vector<string> files = {file_path, file_path2};
 
@@ -97,10 +98,10 @@ int main(int argc, char **argv)
 
 
     //customBooleanPipeline(arr_verts, arr_in_tris, arr_out_tris, arr_in_labels, dupl_triangles, labels, patches, octree, op, bool_coords, bool_tris, bool_labels);
-    FastTrimesh tm(arr_verts, arr_out_tris, false);
+    FastTrimesh tm(arr_verts, arr_out_tris, true);
 
 
-    computeAllPatches(tm, labels, patches, false);
+    computeAllPatches(tm, labels, patches, true);
 
     // the informations about duplicated triangles (removed in arrangements) are restored in the original structures
     addDuplicateTrisInfoInStructures(dupl_triangles, arr_in_tris, arr_in_labels, octree);
@@ -115,7 +116,10 @@ int main(int argc, char **argv)
     //DIFF CODE
     std::vector<std::vector<std::vector<uint>>> parts_to_color;
     std::vector<int> num_tri_to_color_per_part;
-    uint num_parts = debug_impl ? 5 : 4 ;
+    uint num_parts = debug_impl ? 4 : 3 ;
+    num_parts = patch_view ? (num_parts + 1): num_parts;
+    std::cout << "num_parts: " << num_parts << std::endl;
+
     parts_to_color.resize(num_parts);
     num_tri_to_color_per_part.resize(num_parts);
 
@@ -174,17 +178,17 @@ int main(int argc, char **argv)
                 }
                 continue;
             }
-        }else{
-            tm.setTriInfo(t_id, 2);
+        }else if(patch_view){
+            tm.setTriInfo(t_id, 1);
             num_tris_in_final_result++;
             num_tri_to_color_per_part[3]++;
-            continue;
         }
 
         if(debug_impl && labels.surface[t_id][0]){
             tm.setTriInfo(t_id, 1);
             num_tris_in_final_result++;
-            num_tri_to_color_per_part[5]++;
+            int pos = patch_view ? 4 : 3;
+            num_tri_to_color_per_part[pos]++;
             for(uint p_id = 0; p_id < patches.size(); ++p_id){
                 if(patches[p_id].contains(t_id)){
                     p_ids.push_back(p_id);
@@ -270,12 +274,14 @@ int main(int argc, char **argv)
                 //TODO: GREEN PARTS
                 parts_to_color[2].push_back(vert_to_color);
             }
-        }else{
+        }else if(patch_view){
+
             parts_to_color[3].push_back(vert_to_color);
         }
 
         if(labels.surface[t_id][0] && debug_impl){
-            parts_to_color[4].push_back(vert_to_color);
+            int pos_app = patch_view ? 4 : 3;
+            parts_to_color[pos_app].push_back(vert_to_color);
         }
 
         bool_labels[tri_offset] = labels.surface[t_id];
@@ -303,11 +309,12 @@ int main(int argc, char **argv)
     //save the green, gray and red parts in a file to be used in the GUI
 
     //create the file with name parts_to_color +
-    //savePartsToFile(parts_to_color,
-                   // "/Users/michele/Documents/GitHub/gitBooleans/results/debug/parts_to_color_" + file_parts_to_color,debug_impl);
+    savePartsToFile(parts_to_color,
+                   "/Users/michele/Documents/GitHub/gitBooleans/results/debug/"+file_parts_to_color,debug_impl, patch_view);
 
-    //savePatchesTriangles("/Users/michele/Documents/GitHub/gitBooleans/results/debug/patches_" + file_patches,
-                     //    p_ids, patches);
+    if(patch_view)
+        savePatchesTriangles("/Users/michele/Documents/GitHub/gitBooleans/results/debug/" + file_patches,
+                         p_ids, patches);
 
 
     ///____________ GUI _____________________________________________________________________________________________
@@ -359,7 +366,7 @@ int main(int argc, char **argv)
             ImGui::EndCombo();
         }
 
-        if(selected_item == 0){
+        if(selected_item == 0 && patch_view){
         if(ImGui::Button("Next Patch"))
         {
             // button clicked: do something

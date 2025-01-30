@@ -17,7 +17,7 @@ bool debug = true;
 bool demo = false;
 bool debug_impl = true;
 bool flag_arrangement_debug = false;
-
+bool patch_view = true;
 
 int main(int argc, char **argv)
 {
@@ -25,14 +25,14 @@ int main(int argc, char **argv)
     GLcanvas gui;
     DrawableTrimesh<>new_mesh;
 
-    string name = "mostro0_1_all";
+    string name = "mostro0_0_mod";
 
     string file_out = "diff_"+name+".obj";
     string file_parts_to_color = "parts_to_color_"+name+".txt";
     string file_patches = name+".txt";
 
-    //string file_mesh = "/Users/michele/Documents/GitHub/gitBooleans/cmake-build-release/diff_"+name+".obj";
-    string file_mesh = "/Users/michele/Documents/GitHub/gitBooleans/cmake-build-debug/input_error.obj";
+    string file_mesh = "/Users/michele/Documents/GitHub/gitBooleans/cmake-build-debug/diff_"+name+".obj";
+    //string file_mesh = "/Users/michele/Documents/GitHub/gitBooleans/cmake-build-debug/input_error.obj";
     DrawableTrimesh<> m(file_mesh.c_str());
     SurfaceMeshControls<DrawableTrimesh<>> controls(&m, &gui,"Diff_test");
 
@@ -108,7 +108,7 @@ int main(int argc, char **argv)
                 std::vector<std::vector<std::vector<unsigned int>>> parts_to_color_debug;
                 std::string filename = "/Users/michele/Documents/GitHub/gitBooleans/results/debug/parts_to_color_"+name+".txt";
 
-                parseFileToParts(filename, parts_to_color_debug, debug_impl);
+                parseFileToParts(filename, parts_to_color_debug, debug_impl,patch_view);
 
                 for(uint i = 0; i < parts_to_color_debug.size(); ++i) {
                     for (uint j = 0; j < parts_to_color_debug[i].size(); ++j) {

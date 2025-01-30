@@ -651,7 +651,7 @@ inline void computeInsideOut(const FastTrimesh &tm, const std::vector<phmap::fla
     bool is_rational = false;
 
     //tbb::parallel_for((uint)0, (uint)patches.size(), [&](uint p_id)
-    for(uint p_id = 0; p_id < patches.size(); p_id++) //For each patch
+    for(uint p_id = 0; p_id < patches.size(); ++p_id) //For each patch
     {
         const phmap::flat_hash_set<uint> &patch_tris = patches[p_id];
         const std::bitset<NBIT> &patch_surface_label = labels.surface[*patch_tris.begin()]; // label of the first triangle of the patch
@@ -720,7 +720,7 @@ inline void computeInsideOut(const FastTrimesh &tm, const std::vector<phmap::fla
             propagateInnerLabelsOnPatch(patch_tris, patch_inner_label, labels);
         }
     }
-   // );
+   //);
 }
 
 
@@ -2062,20 +2062,16 @@ inline void findRayEndpointsCustom(const FastTrimesh &tm, const phmap::flat_hash
             std::exit(EXIT_FAILURE);
         }
 
-        //TODO: check se centroide sta sullo stesso piano dei vertici del triangolo
+        //check if the centroid is inside the triangle
         if(cinolib::orient3d(&tv0_rat[0], &tv1_rat[0], &tv2_rat[0], &rational_ray.v0[0]).sgn() != 0){
             std::cout << "The centroid is not on the triangle or the orient3d doesn't work properly" << std::endl;
             std::cout << "The value of orient3d is: " << cinolib::orient3d(&tv0_rat[0], &tv1_rat[0], &tv2_rat[0], &rational_ray.v0[0]) << std::endl;
             std::exit(EXIT_FAILURE);
-        } //the centroid is exaclty on the plane of the triangle
+        }
 
-
-        //TODO: controlla che le tre orient siano di segno concorde per controllare che il centroide sta all'interno
         bigrational e0_rat = cinolib::orient3d(&tv0_rat[0], &tv1_rat[0], &rational_ray.v1[0], &rational_ray.v0[0]);
         bigrational e1_rat = cinolib::orient3d(&tv1_rat[0], &tv2_rat[0], &rational_ray.v1[0], &rational_ray.v0[0]);
         bigrational e2_rat = cinolib::orient3d(&tv2_rat[0], &tv0_rat[0], &rational_ray.v1[0], &rational_ray.v0[0]);
-
-
 
         if((e0_rat > bigrational(0,0,0) && e1_rat > bigrational(0,0,0) && e2_rat > bigrational(0,0,0)) ||
            (e0_rat < bigrational(0,0,0) && e1_rat < bigrational(0,0,0) && e2_rat < bigrational(0,0,0))){
@@ -2090,6 +2086,7 @@ inline void findRayEndpointsCustom(const FastTrimesh &tm, const phmap::flat_hash
             return;
         } else{
 
+            std::cout << "t_id of the triangle with a problem : " << t_id << std::endl;
             std::cout << "The centroid is not inside the triangle or the orient3D doesn't work properly" << std::endl;
             std::cout << "The value of orient3d for the first edge is: " << e0_rat << std::endl;
             std::cout << "The value of orient3d for the second edge is: " << e1_rat << std::endl;
@@ -2107,10 +2104,6 @@ inline void findRayEndpointsCustom(const FastTrimesh &tm, const phmap::flat_hash
             std::cout << "v0: " << rational_ray.v0[0] << " " << rational_ray.v0[1] << " " << rational_ray.v0[2] << " In double: "<< rational_ray.v0[0].get_d() <<" " << rational_ray.v0[1].get_d() << " " << rational_ray.v0[2].get_d() << std::endl;
             std::cout << "v1: " << rational_ray.v1[0] << " " << rational_ray.v1[1] << " " << rational_ray.v1[2] << " In double: "<< rational_ray.v1[0].get_d() <<" " << rational_ray.v1[1].get_d() << " " << rational_ray.v1[2].get_d() << std::endl;
 
-
-            std::cout << "t_id of the triangle with a problem : " << t_id << std::endl;
-            continue;
-
             std::exit(EXIT_FAILURE);
         }
     }
@@ -2125,15 +2118,13 @@ inline void findIntersectionsAlongRayRationals(const FastTrimesh &tm, const std:
                                                phmap::flat_hash_set<uint> &tmp_inters,
                                                std::vector<IntersectionPointRationals> &inter_rat, std::vector<bigrational> &in_verts_rational, const std::vector<uint> &in_tris)
 {
-    tbb::spin_mutex mutex;
-
     //I take the coordinates of the end points of the ray
     std::vector<bigrational> ray_v0 = {rational_ray.v0[0], rational_ray.v0[1], rational_ray.v0[2]};
     std::vector<bigrational> ray_v1 = {rational_ray.v1[0], rational_ray.v1[1], rational_ray.v1[2]};
 
 
     std::vector<uint> inters_tris_rat;
-    //tbb::parallel_for((uint)0, (uint)patches.size(), [&](uint p_id)
+
     for(uint t_id = 0; t_id < (in_tris.size() / 3) ; ++t_id){
 
         //I take the coordinates of the vertices of the triangle
@@ -2161,21 +2152,9 @@ inline void findIntersectionsAlongRayRationals(const FastTrimesh &tm, const std:
         int intersection = segment_triangle_intersect_3d(&ray_v0[0], &ray_v1[0], &tv0[0], &tv1[0], &tv2[0]);
         //time_segment_triangle_intersect_3d.pop();
 
-        //print the info about the triangle that is intersected by the ray
-        /*std::cout.precision(18);
-        std::cout << "Triangle id: " << t_id << std::endl;
-        std::cout << "Triangle coords: " << std::endl;
-        std::cout << "v0: " << tv0[0] << " " << tv0[1] << " " << tv0[2] << std::endl;
-        std::cout << "v1: " << tv1[0] << " " << tv1[1] << " " << tv1[2] << std::endl;
-        std::cout << "v2: " << tv2[0] << " " << tv2[1] << " " << tv2[2] << std::endl;*/
-
-
         //I check if the ray intersects the triangle
         if (intersection){
-        //if (intersection == 2|| intersection == 3){
-
             tmp_inters.insert(t_id);
-
             std::vector<bigrational> p_int(3);
             //cinolib::Profiler time_plane_line_intersection;
             //time_plane_line_intersection.push("::: Time of one plane line intersection --> ");
@@ -2340,14 +2319,11 @@ inline void pruneIntersectionsAndSortAlongRayRationals(const RationalRay &ray, c
 
         const std::bitset<NBIT> tested_tri_label = in_labels.at(t_id_int);
         uint uint_tri_label = bitsetToUint(tested_tri_label);
+
         if (patch_surface_label_tmp[uint_tri_label]){
-            inter_rat.erase(
-                    std::remove_if(inter_rat.begin(), inter_rat.end(),
-                                   [t_id_int](const IntersectionPointRationals &ipr){
-                                       return ipr.getTriId() == t_id_int;
-                                   }),
-                    inter_rat.end());
-            continue;} // <-- triangle of the same label of the tested patch
+            eraseIntersectionPoints(inter_rat, t_id_int);
+            continue;
+        } // <-- triangle of the same label of the tested patch
 
         bigrational tv0_x, tv0_y, tv0_z,
                     tv1_x, tv1_y, tv1_z,
@@ -2370,29 +2346,17 @@ inline void pruneIntersectionsAndSortAlongRayRationals(const RationalRay &ray, c
         const std::vector<bigrational> tv2_exact = {tv2_x, tv2_y, tv2_z};
 
         IntersInfo ii = fast2DCheckIntersectionOnRayRationals(ray, tv0_exact, tv1_exact, tv2_exact);
+
         std::cout << std::endl;
         if (ii == DISCARD){
             std::cout<<"DISCARD the intersection detected" << std::endl;
             //remove the intersection point from the vector
-
-            inter_rat.erase(
-                    std::remove_if(inter_rat.begin(), inter_rat.end(),
-                                   [t_id_int](const IntersectionPointRationals &ipr){
-                                       return ipr.getTriId() == t_id_int;
-                                   }),
-                    inter_rat.end());
-
-            continue;}
+            eraseIntersectionPoints(inter_rat, t_id_int);
+            continue;
+        }
         if (ii == NO_INT){
             std::cout<<"NO Intersection detected" << std::endl;
-
-            inter_rat.erase(
-                    std::remove_if(inter_rat.begin(), inter_rat.end(),
-                                   [t_id_int](const IntersectionPointRationals &ipr){
-                return ipr.getTriId() == t_id_int;
-            }),
-            inter_rat.end());
-
+            eraseIntersectionPoints(inter_rat, t_id_int);
             continue;}
 
         if (ii == INT_IN_TRI) {
@@ -2484,13 +2448,12 @@ inline void pruneIntersectionsAndSortAlongRayRationals(const RationalRay &ray, c
              [](const IntersectionPointRationals &a, const IntersectionPointRationals &b) {
                  return a.lessThanY(b);
              });
-        else // ray.dir == 'Z'
-            sort(inter_rat.begin(), inter_rat.end(),
-                 [](const IntersectionPointRationals &a, const IntersectionPointRationals &b) {
-                     return a.lessThanZ(b);
-                 });
+    else // ray.dir == 'Z'
+        sort(inter_rat.begin(), inter_rat.end(),
+             [](const IntersectionPointRationals &a, const IntersectionPointRationals &b) {
+                 return a.lessThanZ(b);
+             });
 
-    //print
 }
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -2532,8 +2495,7 @@ inline void analyzeSortedIntersectionsRationals(const RationalRay &rational_ray,
             patch_inner_label[t_label] = true;
         }
         visited_labels[t_label] = true;
-           // }
-        //}
+
     }
 
 }
@@ -2926,6 +2888,15 @@ inline uint findPatchIdByTriId(const std::vector<phmap::flat_hash_set<uint>> &pa
     assert(false && "Triangle not found in any patch");
 }
 
+inline void eraseIntersectionPoints(std::vector<IntersectionPointRationals>& inter_rat, uint t_id_int) {
+    inter_rat.erase(
+            std::remove_if(inter_rat.begin(), inter_rat.end(),
+                           [t_id_int](const IntersectionPointRationals &ipr) {
+                               return ipr.getTriId() == t_id_int;
+                           }),
+            inter_rat.end());
+}
+
 ///:::::::::::::: DEBUG RATIONALS FUNCTIONS ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 
@@ -2952,7 +2923,7 @@ inline void printInfoTriangleRationals(RationalRay &rational_ray, std::vector <b
 
 void savePartsToFile(const std::vector<std::vector<std::vector<unsigned int>>>& parts_to_color,
                      const std::string& filename,
-                     bool debug_impl) {
+                     bool debug_impl, bool patch_view) {
     // Open a file for writing
     std::ofstream outFile(filename);
     if (!outFile.is_open()) {
@@ -2961,10 +2932,11 @@ void savePartsToFile(const std::vector<std::vector<std::vector<unsigned int>>>& 
     }
 
     // Define the color labels
-    std::vector<std::string> labels = {"GRAY Parts", "RED Parts", "GREEN Parts", "WHITE Parts"};
+    std::vector<std::string> labels = {"GRAY Parts", "RED Parts", "GREEN Parts", "WHITE Parts", "PATCH Parts"};
 
     // Adjust the number of parts to save
     size_t num_parts = debug_impl ? 4 : 3;
+    num_parts = patch_view ? (num_parts + 1) : num_parts;
 
     // Iterate through the parts
     for (size_t i = 0; i < num_parts; ++i) {
@@ -2990,7 +2962,7 @@ void savePartsToFile(const std::vector<std::vector<std::vector<unsigned int>>>& 
 
 bool parseFileToParts(const std::string& filename,
                       std::vector<std::vector<std::vector<unsigned int>>>& parts_to_color,
-                      bool debug_impl) {
+                      bool debug_impl, bool patch_view) {
     // Open the file for reading
     std::ifstream inFile(filename);
     if (!inFile.is_open()) {
@@ -3003,11 +2975,13 @@ bool parseFileToParts(const std::string& filename,
             {"GRAY Parts", 0},
             {"RED Parts", 1},
             {"GREEN Parts", 2},
-            {"WHITE Parts", 3} // New label for debug_impl
+            {"WHITE Parts", 3},
+            {"PATCH Parts", 4}// New label for debug_impl
     };
 
     // Adjust the parts_to_color size
     size_t num_parts = debug_impl ? 4 : 3;
+    num_parts = patch_view ? (num_parts + 1) : num_parts;
     parts_to_color.resize(num_parts);
 
     // Parsing state
@@ -3052,7 +3026,7 @@ void savePatchesTriangles(const std::string& filename, const std::vector<int>& p
 
     // Iterate through patches
     for (size_t i = 0; i < patches.size(); ++i) {
-        if (p_id_set.find(i) != p_id_set.end()) { // Check if the current patch ID is in p_ids
+         // Check if the current patch ID is in p_ids
             // Write patch header
             outfile << "Patch " << i << "\n";
 
@@ -3060,7 +3034,7 @@ void savePatchesTriangles(const std::string& filename, const std::vector<int>& p
             for (const auto& triangle_id : patches[i]) {
                 outfile << triangle_id << '\n';
             }
-        }
+
     }
 
     outfile.close();
