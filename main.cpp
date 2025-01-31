@@ -37,12 +37,12 @@ int main(int argc, char **argv)
         file_path = "../data/mostro0.obj";
         //file_path = "../data/test/cube.obj";
         //file_path2 = "../data/test/Horse/Horse_conv/horse1.obj";
-        file_path2 = "../data/mostro0_mod.obj";
+        file_path2 = "../data/mostro1.obj";
         //file_path2 = "../data/t2.obj";
         //file_path2 = "../data/test/pyramid_transform.obj";
 
     }
-    string name = "mostro0_0_mod";
+    string name = "mostro0_1";
 
     string file_out = "diff_"+name+".obj";
     string file_parts_to_color = "parts_to_color_"+name+".txt";
@@ -128,15 +128,6 @@ int main(int argc, char **argv)
 
     vector<int> p_ids;
 
-    /*for(uint t_id = 0; t_id < tm.numTris(); ++t_id) {
-        tm.setTriInfo(t_id, 1);
-        num_tris_in_final_result++;
-        num_tri_to_color_per_part[0]++;
-
-    }
-    for(uint p_id = 0; p_id < patches.size(); ++p_id){
-            p_ids.push_back(p_id);
-    }*/
     for(uint t_id = 0 ; t_id < tm.numTris(); ++t_id){
         if(labels.surface[t_id][1]){ //if the triangle belong to B
             if(labels.surface[t_id].count() == 2 && labels.inside[t_id].count() == 0){

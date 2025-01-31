@@ -42,6 +42,7 @@
 #include <intersect_point_rationals.h>
 #include <ranges> // For std::ranges::contains
 #include <cinolib/profiler.h>
+#include <omp.h>
 
 inline void customBooleanPipeline(std::vector<genericPoint*>& arr_verts, std::vector<uint>& arr_in_tris,
                                   std::vector<uint>& arr_out_tris, std::vector<std::bitset<NBIT>>& arr_in_labels,
@@ -2113,7 +2114,7 @@ inline void findRayEndpointsCustom(const FastTrimesh &tm, const phmap::flat_hash
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-inline void findIntersectionsAlongRayRationals(const FastTrimesh &tm, const std::vector<phmap::flat_hash_set<uint>> &patches, const cinolib::Octree& tree ,const std::vector<genericPoint *> &in_verts,
+/*inline void findIntersectionsAlongRayRationals(const FastTrimesh &tm, const std::vector<phmap::flat_hash_set<uint>> &patches, const cinolib::Octree& tree ,const std::vector<genericPoint *> &in_verts,
                                                const std::vector<std::bitset<NBIT>> &in_labels, Labels &labels, const RationalRay &rational_ray, uint curr_p_id,
                                                phmap::flat_hash_set<uint> &tmp_inters,
                                                std::vector<IntersectionPointRationals> &inter_rat, std::vector<bigrational> &in_verts_rational, const std::vector<uint> &in_tris)
@@ -2177,7 +2178,55 @@ inline void findIntersectionsAlongRayRationals(const FastTrimesh &tm, const std:
     std::cout << ":::::::::::::::::::::::::::::::::::::::::::::::::" << std::endl;
     std::cout << std::endl;
 
+}*/
+
+
+inline void findIntersectionsAlongRayRationals(const FastTrimesh &tm, const std::vector<phmap::flat_hash_set<uint>> &patches,
+                                               const cinolib::Octree &tree, const std::vector<genericPoint *> &in_verts,
+                                               const std::vector<std::bitset<NBIT>> &in_labels, Labels &labels,
+                                               const RationalRay &rational_ray, uint curr_p_id,
+                                               phmap::flat_hash_set<uint> &tmp_inters,
+                                               std::vector<IntersectionPointRationals> &inter_rat,
+                                               std::vector<bigrational> &in_verts_rational, const std::vector<uint> &in_tris) {
+
+    // Endpoints del raggio
+    std::array<bigrational, 3> ray_v0 = {rational_ray.v0[0], rational_ray.v0[1], rational_ray.v0[2]};
+    std::array<bigrational, 3> ray_v1 = {rational_ray.v1[0], rational_ray.v1[1], rational_ray.v1[2]};
+
+    #pragma omp parallel
+    {
+        phmap::flat_hash_set<uint> tmp_inters_local;
+        std::vector<IntersectionPointRationals> inter_rat_local;
+
+        #pragma omp for
+        for (uint t_id = 0; t_id < (in_tris.size() / 3); ++t_id) {
+            const uint base_idx0 = 3 * in_tris[3 * t_id];
+            const uint base_idx1 = 3 * in_tris[3 * t_id + 1];
+            const uint base_idx2 = 3 * in_tris[3 * t_id + 2];
+
+            std::array<bigrational, 3> tv0 = {in_verts_rational[base_idx0], in_verts_rational[base_idx0 + 1], in_verts_rational[base_idx0 + 2]};
+            std::array<bigrational, 3> tv1 = {in_verts_rational[base_idx1], in_verts_rational[base_idx1 + 1], in_verts_rational[base_idx1 + 2]};
+            std::array<bigrational, 3> tv2 = {in_verts_rational[base_idx2], in_verts_rational[base_idx2 + 1], in_verts_rational[base_idx2 + 2]};
+
+            // Test intersezione segmento-triangolo
+            if (segment_triangle_intersect_3d(ray_v0.data(), ray_v1.data(), tv0.data(), tv1.data(), tv2.data())) {
+                tmp_inters_local.insert(t_id);
+
+                std::array<bigrational, 3> p_int;
+                plane_line_intersection(tv0.data(), tv1.data(), tv2.data(), ray_v0.data(), ray_v1.data(), p_int.data());
+                inter_rat_local.emplace_back(p_int[0], p_int[1], p_int[2], t_id);
+            }
+        }
+
+        // Fusione dei risultati globali
+        #pragma omp critical
+        {
+            tmp_inters.insert(tmp_inters_local.begin(), tmp_inters_local.end());
+            inter_rat.insert(inter_rat.end(), inter_rat_local.begin(), inter_rat_local.end());
+        }
+    }
 }
+
 
 //::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
