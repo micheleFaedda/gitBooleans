@@ -16,7 +16,7 @@ using namespace std;
 bool debug = true;
 bool demo = false;
 bool debug_impl = false;
-bool patch_view = true;
+bool patch_view = false;
 
 int main(int argc, char **argv)
 {
@@ -42,7 +42,7 @@ int main(int argc, char **argv)
         //file_path2 = "../data/test/pyramid_transform.obj";
 
     }
-    string name = "mostro0_1";
+    string name = "t1_t3";
 
     string file_out = "diff_"+name+".obj";
     string file_parts_to_color = "parts_to_color_"+name+".txt";
@@ -79,22 +79,9 @@ int main(int argc, char **argv)
     std::vector<phmap::flat_hash_set<uint>> patches;
     cinolib::Octree octree; // built with arr_in_tris and arr_in_labels
 
-
-    //print the size of arr_in_tris, arr_in_labels, arr_out_tris
-    std::cout << "arr_in_tris size: " << arr_in_tris.size() << std::endl;
-    std::cout << "arr_in_labels size: " << arr_in_labels.size() << std::endl;
-    std::cout << "arr_out_tris size: " << arr_out_tris.size() << std::endl;
-    std::cout << "in_coords size: " << in_coords.size() << std::endl;
-    std::cout << "arr_verts size: " << arr_verts.size() << std::endl;
-
     customArrangementPipeline(in_coords, in_tris, in_labels, arr_in_tris, arr_in_labels, arena, arr_verts,
                               arr_out_tris, labels, octree, dupl_triangles);
-//print the size of arr_in_tris, arr_in_labels, arr_out_tris
-    std::cout << "arr_in_tris size: " << arr_in_tris.size() << std::endl;
-    std::cout << "arr_in_labels size: " << arr_in_labels.size() << std::endl;
-    std::cout << "arr_out_tris size: " << arr_out_tris.size() << std::endl;
-    std::cout << "in_coords size: " << in_coords.size() << std::endl;
-    std::cout << "arr_verts size: " << arr_verts.size() << std::endl;
+
 
 
     //customBooleanPipeline(arr_verts, arr_in_tris, arr_out_tris, arr_in_labels, dupl_triangles, labels, patches, octree, op, bool_coords, bool_tris, bool_labels);

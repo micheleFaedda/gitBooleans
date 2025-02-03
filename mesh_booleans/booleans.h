@@ -80,6 +80,10 @@ struct DuplTriInfo
     bool w;
 };
 
+struct BoundingBox {
+    bigrational xmin, xmax, ymin, ymax, zmin, zmax;
+};
+
 enum BoolOp {UNION, INTERSECTION, SUBTRACTION, XOR, NONE};
 
 enum IntersInfo {DISCARD, NO_INT, INT_IN_V0, INT_IN_V1, INT_IN_V2, INT_IN_EDGE01, INT_IN_EDGE12, INT_IN_EDGE20, INT_IN_TRI};
@@ -271,6 +275,11 @@ inline RationalRay perturbYRayRationals(const RationalRay &ray, uint offset);
 inline RationalRay perturbZRayRationals(const RationalRay &ray, uint offset);
 
 inline void eraseIntersectionPoints(std::vector<IntersectionPointRationals>& inter_rat, uint t_id_int);
+
+BoundingBox calculateBoundingBox(const std::array<bigrational, 3>& tv0,
+                                 const std::array<bigrational, 3>& tv1,
+                                 const std::array<bigrational, 3>& tv2);
+bool rayIntersectAABB(const RationalRay &ray, const BoundingBox & aabb);
 
 
 ////::::::::::: DEBUG CUSTOM ::::::::::::::::::::::::::::::::::::::::::::::::::::::
