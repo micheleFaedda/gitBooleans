@@ -5,14 +5,16 @@
 #include <iostream>
 
 #include <cinolib/meshes/meshes.h>
+#include <cinolib/profiler.h>
 #include <cinolib/gl/glcanvas.h>
 #include <cinolib/gl/surface_mesh_controls.h>
 #include <arrangements/external/Indirect_Predicates/include/implicit_point.h>
 #include <mesh_booleans/booleans.h>
+#include <cstdlib>
 #include <arrangements/code/processing.h>
+#include <io_functions.h>
 
 using namespace cinolib;
-using namespace std;
 bool debug = true;
 bool demo = false;
 bool debug_impl = false;
@@ -32,17 +34,10 @@ int main(int argc, char **argv)
         file_path = argv[1];
         file_path2 = argv[2];
     }else{
-        //file_path = "../data/test/Horse/Horse_conv/horse0.obj";
-        //file_path = "../data/t1.obj";
         file_path = "../data/mostro0.obj";
-        //file_path = "../data/test/cube.obj";
-        //file_path2 = "../data/test/Horse/Horse_conv/horse1.obj";
         file_path2 = "../data/mostro1.obj";
-        //file_path2 = "../data/t2.obj";
-        //file_path2 = "../data/test/pyramid_transform.obj";
-
     }
-    string name = "t1_t3";
+    string name = "mostro0_0mod";
 
     string file_out = "diff_"+name+".obj";
     string file_parts_to_color = "parts_to_color_"+name+".txt";
@@ -51,8 +46,6 @@ int main(int argc, char **argv)
     vector<string> files = {file_path, file_path2};
 
     BoolOp op = UNION;
-
-
 
     vector<double> in_coords, bool_coords;
     vector<uint> in_tris, bool_tris;
@@ -96,7 +89,7 @@ int main(int argc, char **argv)
 
     // parse patches with octree and rays
     cinolib::vec3d max_coords(octree.root->bbox.max.x() +0.5, octree.root->bbox.max.y() +0.5, octree.root->bbox.max.z() +0.5);
-    computeInsideOut(tm, patches, octree, arr_verts, arr_in_tris, arr_in_labels, max_coords, labels);
+    computeInsideOutCustom(tm, patches, octree, arr_verts, arr_in_tris, arr_in_labels, max_coords, labels);
 
 
     /******************************************************************************************************/
@@ -282,7 +275,21 @@ int main(int argc, char **argv)
     profiler.pop(); //end timer
 
 
+
     cinolib::write_OBJ(file_out.c_str(), bool_coords, bool_tris, {});
+    // Percorso dell'eseguibile e del file da passare come argomento
+    const char* exe = "../mesh_booleans_inputcheck";
+
+    // Costruzione del comando da eseguire
+    std::string command = std::string(exe) + " " + file_out.c_str();
+
+    // Esecuzione del comando
+    int result = system(command.c_str());
+
+    if(result != 0){
+        std::cerr << "Error in the execution of the command" << std::endl;
+    }
+
 
     //save the green, gray and red parts in a file to be used in the GUI
 

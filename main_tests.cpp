@@ -14,6 +14,9 @@
 #include <cinolib/drawable_triangle_soup.h>
 #include <cinolib/profiler.h>
 #include <intersect_point_rationals.h>
+
+
+
 using namespace cinolib;
 void savePartsToFile(const std::vector<std::vector<std::vector<unsigned int>>>& parts_to_color,
                      const std::string& filename,
@@ -111,6 +114,11 @@ bool parseFileToParts(const std::string& filename,
 
 int main(int argc, char **argv) {
 
+    return 0;
+
+    //ripara la mesh e la salva
+
+/*
     std::cout.precision(18);
     std::cout << std::numeric_limits<double>::max() << std::endl;
 
@@ -208,7 +216,7 @@ int main(int argc, char **argv) {
         }
     } else {
         std::cerr << "Failed to parse the file.\n";
-    }
+    }*/
     /*bigrational zero = bigrational(0,0,0)
 
     const uint64_t one = 412425389222715451;
@@ -566,8 +574,9 @@ int main(int argc, char **argv) {
     /**********TEST IMPL TRIANGLE AND SEGMENT *********/
 
     //segment to generate the intersection
+    /*
     const std::vector<bigrational> s0 = {bigrational(0.5), bigrational(0.6), bigrational(-1.0)};
-    const std::vector<bigrational> s1 = {bigrational(0.5), bigrational(0.6), bigrational(1.0)};
+    const std::vector<bigrational> s1 = {bigrational(0.5), bigrational(0.6), bigrational(1.0)};*/
 
     //test
    /* auto result_segment = segment_triangle_intersect_3d(&s0[0], &s1[0], &P0_rational[0], &P1_rational[0], &P2_rational[0]);

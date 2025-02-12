@@ -44,25 +44,18 @@
 #include "intersection_classification.h"
 #include "triangulation.h"
 #include <cinolib/octree.h>
+
 #include "intersect_custom.h"
 #include "code/intersect_point_rationals.h"
 #include <regex>
-
 #include <bitset>
+//#include "code/ray_rationals.h"
 
 struct Labels
 {
     std::vector< std::bitset<NBIT> > surface;
     std::vector< std::bitset<NBIT> > inside;
     uint num;
-};
-
-struct RationalRay{
-    std::array<bigrational,3> v0;
-    std::array<bigrational,3> v1;
-    char dir = 'X';
-    int tv[3] = {-1, -1, -1};
-
 };
 
 struct Ray
@@ -80,9 +73,7 @@ struct DuplTriInfo
     bool w;
 };
 
-struct BoundingBox {
-    bigrational xmin, xmax, ymin, ymax, zmin, zmax;
-};
+
 
 enum BoolOp {UNION, INTERSECTION, SUBTRACTION, XOR, NONE};
 
@@ -192,15 +183,10 @@ inline bool checkIntersectionInsideTriangle3D(const Ray &ray, const explicitPoin
 
 inline bool checkIntersectionInsideTriangle3DImplPoints(const Ray &ray, const genericPoint *tv0, const genericPoint *tv1, const genericPoint *tv2);
 
-// custom functions
-inline bool checkIntersectionInsideTriangle3DImplPoints(const Ray &ray, const std::vector<bigrational> &tv0, const std::vector<bigrational> &tv1, const std::vector<bigrational> &tv2);
-
 inline bool checkIntersectionInsideTriangle3D(const Ray &ray, const explicitPoint3D &tv0, const explicitPoint3D &tv1, const explicitPoint3D &tv2);
 
 inline void sortIntersectedTrisAlongX(const Ray &ray, const std::vector<genericPoint*> &in_verts,
                                       const std::vector<uint> &in_tris, std::vector<uint> &inters_tris);
-
-
 
 inline void sortIntersectedTrisAlongY(const Ray &ray, const std::vector<genericPoint*> &in_verts,
                                       const std::vector<uint> &in_tris, std::vector<uint> &inters_tris);
@@ -239,9 +225,24 @@ inline void loadInputWithLabels(const std::string &filename, std::vector<double>
 inline void loadInputWithLabels(const std::string &filename, std::vector<double> &coords, std::vector<uint> &tris, std::vector<uint> &labels);
 
 
+///_:::::::::::::::::: RATIONALS STRUCTS ::::::::::::::::::::::::::::::::::::::::::::
+struct RationalRay{
+    std::array<bigrational,3> v0;
+    std::array<bigrational,3> v1;
+    char dir = 'X';
+    int tv[3] = {-1, -1, -1};
 
+};
+
+struct BoundingBox {
+    bigrational xmin, xmax, ymin, ymax, zmin, zmax;
+};
 ///::::::::::::::::::: RATIONALS FUNCTIONS ::::::::::::::::::::::::::::::::::::::::::
 
+inline void setExplicitVertex(const FastTrimesh &tm, std::vector<bigrational> &in_verts_rational, uint vertex_id, bigrational &x, bigrational &y, bigrational &z);
+inline void computeInsideOutCustom(const FastTrimesh &tm, const std::vector<phmap::flat_hash_set<uint>> &patches, const cinolib::Octree &octree,
+                                   const std::vector<genericPoint *> &in_verts, const std::vector<uint> &in_tris,
+                                   const std::vector<std::bitset<NBIT>> &in_labels, const cinolib::vec3d &max_coords, Labels &labels);
 inline void findRayEndpointsCustom(const FastTrimesh &tm, const phmap::flat_hash_set<uint> &patch, const cinolib::vec3d &max_coords, Ray &ray, RationalRay &rational_ray, const std::vector<genericPoint *> &in_verts, std::vector<bigrational> &in_verts_rational, bool &is_rational, bool debug);
 
 inline void findIntersectionsAlongRayRationals(const FastTrimesh &tm, const std::vector<phmap::flat_hash_set<uint>> &patches, const cinolib::Octree& tree, const std::vector<genericPoint *> &in_verts,
@@ -250,7 +251,7 @@ inline void findIntersectionsAlongRayRationals(const FastTrimesh &tm, const std:
 
 inline IntersInfo fast2DCheckIntersectionOnRayRationals(const RationalRay &ray, const std::vector<bigrational> &tv0, const std::vector<bigrational> &tv1, const std::vector<bigrational> &tv2);
 
-inline bool checkIntersectionInsideTriangle3DRationals(const RationalRay &ray, const std::vector<bigrational> &tv0, const std::vector<bigrational> &tv1, const std::vector<bigrational> &tv2);
+inline bool checkIntersectionInsideTriangle3DRationals(const RationalRay &ray, const std::array<bigrational,3> &tv0, const std::array<bigrational,3> &tv1, const std::array<bigrational,3> &tv2);
 inline uint checkTriangleOrientationRationals(const RationalRay &ray, const std::vector<bigrational> &tv0, const std::vector<bigrational> &tv1, const std::vector<bigrational> &tv2);
 
 inline void pruneIntersectionsAndSortAlongRayRationals(const RationalRay &ray, const FastTrimesh &tm, const std::vector<genericPoint*> &in_verts,
@@ -268,7 +269,6 @@ inline int perturbRayAndFindIntersTriRationals(const RationalRay &ray, const std
 inline bigrational next_after(const bigrational& x, const bigrational& target);
 
 inline uint findPatchIdByTriId(const std::vector<phmap::flat_hash_set<uint>> &patches, uint t_id);
-inline IntersectionPointRationals findIntersectPointByTriIdRationals(RationalRay ray, const std::vector<genericPoint*> &in_verts, const std::vector<uint> &in_tris, const std::vector<phmap::flat_hash_set<uint>> &patches, uint t_id);
 
 inline RationalRay perturbXRayRationals(const RationalRay &ray, uint offset);
 inline RationalRay perturbYRayRationals(const RationalRay &ray, uint offset);
@@ -276,10 +276,12 @@ inline RationalRay perturbZRayRationals(const RationalRay &ray, uint offset);
 
 inline void eraseIntersectionPoints(std::vector<IntersectionPointRationals>& inter_rat, uint t_id_int);
 
-BoundingBox calculateBoundingBox(const std::array<bigrational, 3>& tv0,
+inline BoundingBox calculateBoundingBox(const std::array<bigrational, 3>& tv0,
                                  const std::array<bigrational, 3>& tv1,
                                  const std::array<bigrational, 3>& tv2);
-bool rayIntersectAABB(const RationalRay &ray, const BoundingBox & aabb);
+inline bool rayIntersectAABB(const RationalRay &ray, const BoundingBox & aabb);
+
+inline bool copyIntersectionPoint(const std::vector<IntersectionPointRationals>& inter_rat, std::vector<IntersectionPointRationals>& inter_rat_tmp, uint t_id_int);
 
 
 ////::::::::::: DEBUG CUSTOM ::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -288,16 +290,16 @@ inline void printInfoTriangleRationals(RationalRay &rational_ray, std::vector <b
 
 
 ///::::::::: DEUBUG PARSER DIFF :::::::::::::::::::::::::::::::::::::::::::::::::::
-bool parseFileToParts(const std::string& filename,
+inline bool parseFileToParts(const std::string& filename,
                       std::vector<std::vector<std::vector<unsigned int>>>& parts_to_color,
                       bool debug_impl);
 
-void savePartsToFile(const std::vector<std::vector<std::vector<unsigned int>>>& parts_to_color,
+inline void savePartsToFile(const std::vector<std::vector<std::vector<unsigned int>>>& parts_to_color,
                      const std::string& filename,
                      bool debug_impl, bool patch_view);
 
-void savePatchesTriangles(const std::string& filename, const std::vector<int>& p_ids, const std::vector<phmap::flat_hash_set<uint>>& patches);
-bool parsePatches(const std::string& filename, std::vector<phmap::flat_hash_set<uint>>& patches);
+inline void savePatchesTriangles(const std::string& filename, const std::vector<int>& p_ids, const std::vector<phmap::flat_hash_set<uint>>& patches);
+inline bool parsePatches(const std::string& filename, std::vector<phmap::flat_hash_set<uint>>& patches);
 
 #include "booleans.cpp"
 
