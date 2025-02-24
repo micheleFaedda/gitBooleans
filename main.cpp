@@ -17,7 +17,7 @@
 using namespace cinolib;
 bool debug = true;
 bool demo = false;
-bool debug_impl = false;
+bool debug_impl = true;
 bool patch_view = false;
 
 int main(int argc, char **argv)
@@ -34,8 +34,10 @@ int main(int argc, char **argv)
         file_path = argv[1];
         file_path2 = argv[2];
     }else{
-        file_path = "../data/mostro0.obj";
-        file_path2 = "../data/mostro1.obj";
+        //file_path = "../data/mostro4.obj";
+        file_path = "/Users/michele/Documents/GitHub/InteractiveAndRobustMeshBooleans/folder_test/Tinghi10K/112917_sf_a.obj";
+        //file_path2 = "../data/mostro5.obj";
+        file_path2 = "/Users/michele/Documents/GitHub/InteractiveAndRobustMeshBooleans/folder_test/mesh_rotated/112917_sf_a.obj";
     }
     string name = "mostro0_0mod";
 
@@ -57,7 +59,7 @@ int main(int argc, char **argv)
     //start timer
     loadMultipleFiles(files, in_coords, in_tris, in_labels);
 
-    cinolib::write_OBJ("input_error_CUBE.obj", in_coords, in_tris, {});
+    cinolib::write_OBJ("diff_original.obj", in_coords, in_tris, {});
 
     //booleanPipeline(in_coords, in_tris, in_labels, op, bool_coords, bool_tris, bool_labels);
 
@@ -89,6 +91,7 @@ int main(int argc, char **argv)
 
     // parse patches with octree and rays
     cinolib::vec3d max_coords(octree.root->bbox.max.x() +0.5, octree.root->bbox.max.y() +0.5, octree.root->bbox.max.z() +0.5);
+
     computeInsideOutCustom(tm, patches, octree, arr_verts, arr_in_tris, arr_in_labels, max_coords, labels);
 
 

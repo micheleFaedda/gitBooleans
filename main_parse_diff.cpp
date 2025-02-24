@@ -13,7 +13,7 @@
 
 using namespace cinolib;
 using namespace std;
-bool debug = true;
+bool debug = false;
 bool demo = false;
 bool debug_impl = true;
 bool flag_arrangement_debug = false;
@@ -24,8 +24,23 @@ int main(int argc, char **argv)
 
     GLcanvas gui;
     DrawableTrimesh<>new_mesh;
-
     string name = "mostro0_0_mod";
+    if(!debug){
+        std::string names = std::filesystem::path(argv[argc - 1]).filename().string(); // Ottieni solo il nome del file
+
+        // Rimuove "diff_" se è presente all'inizio
+        if (names.rfind("diff_",0) == 0) {
+            names.erase(0, 5);
+        }
+
+        // Rimuove ".obj" se è presente alla fine
+        if (names.size() >= 4 && names.substr(names.size() - 4) == ".obj") {
+            names.erase(names.size() - 4);
+        }
+        name = names;
+    }else{
+        name = "mostro0_0_mod";
+    }
 
     string file_out = "diff_"+name+".obj";
     string file_parts_to_color = "parts_to_color_"+name+".txt";
@@ -42,7 +57,7 @@ int main(int argc, char **argv)
 
     std::vector<int> p_ids;
     std::vector<phmap::flat_hash_set<uint>> patches;
-    parsePatches("/Users/michele/Documents/GitHub/gitBooleans/results/debug/patches_"+name+".txt", patches);
+
     int p = -1;
 
 
@@ -71,7 +86,8 @@ int main(int argc, char **argv)
     ray.use_gl_lines = true;
     gui.push(&ray);
 
-
+    bool parsed = false;
+    bool parsed2 = false;
     static int selected_item = 0;
     const char* items[] = { "Patch Analysis", "Show Triangle", "Pick Vertex",
                             "Diff Analysis", "Ray Analysis", "Push Point",
@@ -107,9 +123,10 @@ int main(int argc, char **argv)
             if(ImGui::Button("Show Diff")){
                 std::vector<std::vector<std::vector<unsigned int>>> parts_to_color_debug;
                 std::string filename = "/Users/michele/Documents/GitHub/gitBooleans/results/debug/parts_to_color_"+name+".txt";
-
-                parseFileToParts(filename, parts_to_color_debug, debug_impl,patch_view);
-
+                if(!parsed2) {
+                    parseFileToParts(filename, parts_to_color_debug, debug_impl, patch_view);
+                    parsed2 = true;
+                }
                 for(uint i = 0; i < parts_to_color_debug.size(); ++i) {
                     for (uint j = 0; j < parts_to_color_debug[i].size(); ++j) {
 
@@ -131,6 +148,10 @@ int main(int argc, char **argv)
             }
         }
         if(selected_item == 0){
+            if(!parsed){
+                parsePatches("/Users/michele/Documents/GitHub/gitBooleans/results/debug/patches_"+name+".txt", patches);
+                parsed = true;
+            }
             if(ImGui::Button("Next Patch"))
             {
                 // button clicked: do something
@@ -164,6 +185,7 @@ int main(int argc, char **argv)
         }
 
         if(selected_item == 1) {
+            if(ImGui::InputInt("Triangle id", &t_deb, 0, m.num_verts())){}
             if (ImGui::Button("Show Triangle")) {
                 m.poly_data(t_deb).color = cinolib::Color(cinolib::Color::YELLOW());
                 cinolib::Marker marker;

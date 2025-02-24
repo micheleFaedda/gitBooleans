@@ -283,7 +283,13 @@ inline bool rayIntersectAABB(const RationalRay &ray, const BoundingBox & aabb);
 
 inline bool copyIntersectionPoint(const std::vector<IntersectionPointRationals>& inter_rat, std::vector<IntersectionPointRationals>& inter_rat_tmp, uint t_id_int);
 
+inline bool isNormalCorrect(
+         bigrational& ov1x,  bigrational& ov1y,  bigrational& ov1z,
+         bigrational& ov2x,  bigrational& ov2y,  bigrational& ov2z,
+         bigrational& ov3x,  bigrational& ov3y,  bigrational& ov3z,
+         bigrational& px,  bigrational& py,  bigrational& pz);
 
+bool isIntersectionValid(const std::vector<bigrational>& inter, const RationalRay& rational_ray);
 ////::::::::::: DEBUG CUSTOM ::::::::::::::::::::::::::::::::::::::::::::::::::::::
 inline void printInfoTriangleRationals(RationalRay &rational_ray, std::vector <bigrational> &tv0_aux, std::vector <bigrational> &tv1_aux, std::vector <bigrational> &tv2_aux,
                                        uint *tv_aux, uint &t_id, bool &print_ray);

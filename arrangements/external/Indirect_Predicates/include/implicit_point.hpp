@@ -1053,14 +1053,27 @@ inline int maxComponentInTriangleNormal_rational(
     bigrational nvy = v3x * v2z - v3z * v2x;
     bigrational nvz = v2x * v3y - v2y * v3x;
 
-    bigrational nvxc = nvx < bigrational() ? -nvx : nvx;
-    bigrational nvyc = nvy < bigrational() ? -nvy : nvy;
-    bigrational nvzc = nvz < bigrational() ? -nvz : nvz;
+    bigrational nvxc = fabs(nvx);
+    bigrational nvyc = fabs(nvy);
+    bigrational nvzc = fabs(nvz);
 
     if (nvxc >= nvyc && nvxc >= nvzc) return 0;
     if (nvyc >= nvxc && nvyc >= nvzc) return 1;
     return 2;
 }
+
+/*
+    if (nvxc == bigrational(0) && nvyc == bigrational(0) && nvzc == bigrational(0)) return -1; // Normale nulla
+
+    if (nvxc > nvyc && nvxc > nvzc) return 0; // X è il massimo assoluto
+    if (nvyc > nvxc && nvyc > nvzc) return 1; // Y è il massimo assoluto
+    if (nvzc > nvxc && nvzc > nvyc) return 2; // Z è il massimo assoluto
+
+// Caso di uguaglianza: scegliamo la direzione con la coordinata più grande in valore assoluto
+    if (nvxc == nvyc && nvxc > nvzc) return (fabs(ov1x) > fabs(ov1y)) ? 0 : 1;
+    if (nvxc == nvzc && nvxc > nvyc) return (fabs(ov1x) > fabs(ov1z)) ? 0 : 2;
+    if (nvyc == nvzc && nvyc > nvxc) return (fabs(ov1y) > fabs(ov1z)) ? 1 : 2;
+    return 0;*/
 
 
 inline int maxComponentInTriangleNormalRationals(bigrational &ov1x, bigrational &ov1y, bigrational &ov1z, bigrational &ov2x, bigrational &ov2y, bigrational &ov2z, bigrational &ov3x, bigrational &ov3y, bigrational &ov3z)
