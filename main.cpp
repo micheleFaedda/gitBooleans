@@ -8,7 +8,7 @@
 #include <cinolib/profiler.h>
 #include <cinolib/gl/glcanvas.h>
 #include <cinolib/gl/surface_mesh_controls.h>
-#include <arrangements/external/Indirect_Predicates/include/implicit_point.h>
+#include <implicit_point.h>
 #include <mesh_booleans/booleans.h>
 #include <cstdlib>
 #include <arrangements/code/processing.h>
@@ -34,10 +34,10 @@ int main(int argc, char **argv)
         file_path = argv[1];
         file_path2 = argv[2];
     }else{
-        //file_path = "../data/mostro4.obj";
-        file_path = "/Users/michele/Documents/GitHub/InteractiveAndRobustMeshBooleans/folder_test/Tinghi10K/112917_sf_a.obj";
-        //file_path2 = "../data/mostro5.obj";
-        file_path2 = "/Users/michele/Documents/GitHub/InteractiveAndRobustMeshBooleans/folder_test/mesh_rotated/112917_sf_a.obj";
+        //file_path = "../data/t1.obj";
+        file_path = "/Users/michele/Documents/GitHub/InteractiveAndRobustMeshBooleans/folder_test/Tinghi10K/702390_sf_a.obj";
+        //file_path2 = "../data/t2.obj";
+        file_path2 = "/Users/michele/Documents/GitHub/InteractiveAndRobustMeshBooleans/folder_test/mesh_rotated/702390_sf_a.obj";
     }
     string name = "mostro0_0mod";
 
@@ -56,12 +56,18 @@ int main(int argc, char **argv)
 
     Profiler profiler;
     profiler.push("Total time");
+
+    Data data;
+
     //start timer
     loadMultipleFiles(files, in_coords, in_tris, in_labels);
 
+    data.in_coords = in_coords;
+    data.in_tris = in_tris;
+
     cinolib::write_OBJ("diff_original.obj", in_coords, in_tris, {});
 
-    //booleanPipeline(in_coords, in_tris, in_labels, op, bool_coords, bool_tris, bool_labels);
+    booleanPipeline(in_coords, in_tris, in_labels, op, bool_coords, bool_tris, bool_labels);
 
     initFPU();
 
@@ -77,22 +83,43 @@ int main(int argc, char **argv)
     customArrangementPipeline(in_coords, in_tris, in_labels, arr_in_tris, arr_in_labels, arena, arr_verts,
                               arr_out_tris, labels, octree, dupl_triangles);
 
-
-
     //customBooleanPipeline(arr_verts, arr_in_tris, arr_out_tris, arr_in_labels, dupl_triangles, labels, patches, octree, op, bool_coords, bool_tris, bool_labels);
-    FastTrimesh tm(arr_verts, arr_out_tris, true);
+    FastTrimesh tm(arr_verts, arr_out_tris, false);
 
 
-    computeAllPatches(tm, labels, patches, true);
+    computeAllPatches(tm, labels, patches, false);
+    std::vector<uint> arr_out_tris_explicit;
 
+    for(auto p : patches){
+        for(uint t : p){
+            arr_out_tris_explicit.push_back(t);
+        }
+    }
+
+
+    std::vector<double> arr_vert_expl; // Corrected size allocation
+
+    for (const auto &vertex : arr_verts) {
+        if (vertex->isExplicit3D()) { // Check if the vertex is explicit
+            const explicitPoint3D &pt = vertex->toExplicit3D();
+            arr_vert_expl.push_back(pt.X());
+            arr_vert_expl.push_back(pt.Y());
+            arr_vert_expl.push_back(pt.Z());
+        }
+    }
+
+    cinolib::write_OBJ("diff_arrangement.obj", arr_vert_expl, arr_in_tris, {});
     // the informations about duplicated triangles (removed in arrangements) are restored in the original structures
     addDuplicateTrisInfoInStructures(dupl_triangles, arr_in_tris, arr_in_labels, octree);
+
 
 
     // parse patches with octree and rays
     cinolib::vec3d max_coords(octree.root->bbox.max.x() +0.5, octree.root->bbox.max.y() +0.5, octree.root->bbox.max.z() +0.5);
 
-    computeInsideOutCustom(tm, patches, octree, arr_verts, arr_in_tris, arr_in_labels, max_coords, labels);
+    computeInsideOutCustom(tm, patches, octree, arr_verts, arr_in_tris, arr_in_labels, max_coords, labels, in_coords, data);
+
+
 
 
     /******************************************************************************************************/
@@ -101,7 +128,6 @@ int main(int argc, char **argv)
     std::vector<int> num_tri_to_color_per_part;
     uint num_parts = debug_impl ? 4 : 3 ;
     num_parts = patch_view ? (num_parts + 1): num_parts;
-    std::cout << "num_parts: " << num_parts << std::endl;
 
     parts_to_color.resize(num_parts);
     num_tri_to_color_per_part.resize(num_parts);
@@ -310,6 +336,10 @@ int main(int argc, char **argv)
     DrawableTrimesh<> m(bool_coords, bool_tris);
     SurfaceMeshControls<DrawableTrimesh<>> mesh_controls (&m, &gui,file_out.c_str());
 
+    //DrawableSegmentSoup s;
+    //s.push_seg(vec3d(data.r0[0], data.r0[1], data.r0[2]), vec3d(data.r1[0], data.r1[1], data.r1[2]), Color(1.0f, 0.0f, 0.0f, 1.0f));
+    //s.thickness = 20.0f;
+    //gui.push(&s);
     gui.push(&m);
     gui.push(&mesh_controls);
     Marker point;
@@ -361,13 +391,13 @@ int main(int argc, char **argv)
             for(uint i = 0; i < m.num_polys(); ++i){
                 m.poly_data(i).color = cinolib::Color(cinolib::Color::WHITE());
             }
-            std::cout<< "p : "<< p << std::endl;
             p++;
+            std::cout<< "p : "<< p << std::endl;
 
             //print the triangles id into patches_debug_diff_tIds
-            for(auto print : p_ids){
+            /*for(auto print : p_ids){
                 std::cout << "Triangle patch: " << print << std::endl;
-            }
+            }*/
 
             for(uint t_id : patches.at(p)){
 
@@ -375,7 +405,7 @@ int main(int argc, char **argv)
                 uint v1 = bool_tris.at(t_id*3+1);
                 uint v2 = bool_tris.at(t_id*3+2);
 
-                std::cout << "Triangle: " << bool_tris.at(t_id*3) << " " << bool_tris.at(t_id*3+1) << " " << bool_tris.at(t_id*3+2) << std::endl;;
+                //std::cout << "Triangle: " << bool_tris.at(t_id*3) << " " << bool_tris.at(t_id*3+1) << " " << bool_tris.at(t_id*3+2) << std::endl;;
                 m.poly_data(t_id).color = cinolib::Color(cinolib::Color::YELLOW());
                 //}
             }
@@ -402,13 +432,13 @@ int main(int argc, char **argv)
                     if (t_id == -1) std::cerr << "Error: triangle not found" << std::endl;
 
                     if(i == 0){ //WHITE
-                            m.poly_data(t_id).color = Color(0.9f,0.9f,0.9f,0.8f);
+                            m.poly_data(t_id).color = Color(0.9f,0.9f,0.9f,0.9f);
                     }else if(i == 1){ //RED
                             m.poly_data(t_id).color = Color(201/255.f,79/255.f,86/255.f);
                     } else if(i == 2){  //GREEN
                         m.poly_data(t_id).color = Color(122/255.f,239/255.f,72/255.f);
                     } else if (i==3){ //WHITE TRANSPARENT
-                        m.poly_data(t_id).color = Color(255/255.f,255/255.f,255/255.f,0.0f);
+                        m.poly_data(t_id).color = Color(255/255.f,255/255.f,255/255.f,0.9f);
                     } else if (debug_impl && i==4) { //WHITE TRANSPARENT
                         m.poly_data(t_id).color = Color(255 / 255.f, 255 / 255.f, 255 / 255.f, 0.9f);
                     }

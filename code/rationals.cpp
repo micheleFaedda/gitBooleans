@@ -33,7 +33,7 @@
 *     16149 Genoa,                                                              *
 *     Italy                                                                     *
 *********************************************************************************/
-#include <cinolib/rationals.h>
+ #include <rationals.h>
 #include <cinolib/predicates.h>
 
 namespace cinolib

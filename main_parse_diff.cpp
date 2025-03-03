@@ -24,7 +24,7 @@ int main(int argc, char **argv)
 
     GLcanvas gui;
     DrawableTrimesh<>new_mesh;
-    string name = "mostro0_0_mod";
+    string name = "diff_original";
     if(!debug){
         std::string names = std::filesystem::path(argv[argc - 1]).filename().string(); // Ottieni solo il nome del file
 

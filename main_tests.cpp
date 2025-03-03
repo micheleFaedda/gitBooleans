@@ -5,7 +5,7 @@
 
 #include <iostream>
 #include <limits>
-#include <cinolib/rationals.h>
+#include <rationals.h>
 #include <implicit_point.h>
 #include "code/intersect_custom.h"
 #include <cinolib/meshes/meshes.h>
@@ -13,11 +13,14 @@
 #include <cinolib/gl/surface_mesh_controls.h>
 #include <cinolib/drawable_triangle_soup.h>
 #include <cinolib/profiler.h>
-#include <intersect_point_rationals.h>
+#include <numerics.h>
+//#include <intersect_point_rationals.h>
+#include "intersect_custom.h"
 
 
 
 using namespace cinolib;
+/*
 void savePartsToFile(const std::vector<std::vector<std::vector<unsigned int>>>& parts_to_color,
                      const std::string& filename,
                      bool debug_impl);
@@ -111,11 +114,38 @@ bool parseFileToParts(const std::string& filename,
     return true;
 }
 
-
+*/
 int main(int argc, char **argv) {
 
-    return 0;
+    bigrational v0[3] = {
+            bigrational(bignatural(512963666812375), bignatural(98304), -1),  // -512963666812375/98304
+            bigrational(bignatural(8215026993013329), bignatural(524288), 1), // 8215026993013329/524288
+            bigrational(bignatural(23866184806474205), bignatural(25165824), 1) // 23866184806474205/25165824
+    };
 
+    bigrational v1[3] = {
+            bigrational(bignatural(2485120455854147), bignatural(524288), -1),  // -2485120455854147/524288
+            bigrational(bignatural(2748561120279135), bignatural(4194304), 1),  // 2748561120279135/4194304
+            bigrational(bignatural(4788228520269257), bignatural(4194304), 1)   // 4788228520269257/4194304
+    };
+
+
+    std::cout << "v0: (" << v0[0] << ", " << v0[1] << ", " << v0[2] << ")" << std::endl;
+    std::cout << "v1: (" << v1[0] << ", " << v1[1] << ", " << v1[2] << ")" << std::endl;
+
+    bool vec_equals_3d_explicit_value = ((v0[0] == v1[0]) && (v0[1] == v1[1]) && (v0[2] == v1[2]));
+    std::cout << "The points are equals? -> "<< vec_equals_3d_explicit_value << std::endl;
+
+
+    bigrational dist2 = (v0[0] - v1[0]) * (v0[0] - v1[0]) +
+                        (v0[1] - v1[1]) * (v0[1] - v1[1]) +
+                        (v0[2] - v1[2]) * (v0[2] - v1[2]);
+
+
+    std::cout << "Distance: " << dist2 << std::endl;
+
+
+    return 0;
     //ripara la mesh e la salva
 
 /*

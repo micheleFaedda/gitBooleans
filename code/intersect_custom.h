@@ -5,7 +5,7 @@
 #ifndef GITBOOLEANS_INTERSECT_CUSTOM_H
 #define GITBOOLEANS_INTERSECT_CUSTOM_H
 
-#include <cinolib/rationals.h>
+#include <rationals.h>
 #include <numerics.h>
 #include <type_traits>
 
