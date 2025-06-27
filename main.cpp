@@ -9,15 +9,15 @@
 #include <cinolib/gl/glcanvas.h>
 #include <cinolib/gl/surface_mesh_controls.h>
 #include <implicit_point.h>
-#include <mesh_booleans/booleans.h>
+#include <booleans.h>
 #include <cstdlib>
-#include <arrangements/code/processing.h>
+#include <processing.h>
 #include <io_functions.h>
 
 using namespace cinolib;
 bool debug = true;
-bool demo = false;
-bool debug_impl = true;
+bool demo = true;
+bool debug_impl = false;
 bool patch_view = false;
 
 int main(int argc, char **argv)
@@ -34,10 +34,10 @@ int main(int argc, char **argv)
         file_path = argv[1];
         file_path2 = argv[2];
     }else{
-        //file_path = "../data/t1.obj";
-        file_path = "/Users/michele/Documents/GitHub/InteractiveAndRobustMeshBooleans/folder_test/Tinghi10K/702390_sf_a.obj";
-        //file_path2 = "../data/t2.obj";
-        file_path2 = "/Users/michele/Documents/GitHub/InteractiveAndRobustMeshBooleans/folder_test/mesh_rotated/702390_sf_a.obj";
+        file_path = "../data/mostro0.obj";
+        //file_path = "/Users/michele/Documents/GitHub/InteractiveAndRobustMeshBooleans/folder_test/Tinghi10K/702390_sf_a.obj";
+        file_path2 = "../data/mostro1.obj";
+        //file_path2 = "/Users/michele/Documents/GitHub/InteractiveAndRobustMeshBooleans/folder_test/mesh_rotated/702390_sf_a.obj";
     }
     string name = "mostro0_0mod";
 
@@ -62,12 +62,12 @@ int main(int argc, char **argv)
     //start timer
     loadMultipleFiles(files, in_coords, in_tris, in_labels);
 
-    data.in_coords = in_coords;
-    data.in_tris = in_tris;
+    //data.in_coords = in_coords;
+    //data.in_tris = in_tris;
 
     cinolib::write_OBJ("diff_original.obj", in_coords, in_tris, {});
 
-    booleanPipeline(in_coords, in_tris, in_labels, op, bool_coords, bool_tris, bool_labels);
+   // booleanPipeline(in_coords, in_tris, in_labels, op, bool_coords, bool_tris, bool_labels, data);
 
     initFPU();
 
@@ -81,7 +81,7 @@ int main(int argc, char **argv)
     cinolib::Octree octree; // built with arr_in_tris and arr_in_labels
 
     customArrangementPipeline(in_coords, in_tris, in_labels, arr_in_tris, arr_in_labels, arena, arr_verts,
-                              arr_out_tris, labels, octree, dupl_triangles);
+                              arr_out_tris, labels, octree, dupl_triangles, true);
 
     //customBooleanPipeline(arr_verts, arr_in_tris, arr_out_tris, arr_in_labels, dupl_triangles, labels, patches, octree, op, bool_coords, bool_tris, bool_labels);
     FastTrimesh tm(arr_verts, arr_out_tris, false);
@@ -117,7 +117,7 @@ int main(int argc, char **argv)
     // parse patches with octree and rays
     cinolib::vec3d max_coords(octree.root->bbox.max.x() +0.5, octree.root->bbox.max.y() +0.5, octree.root->bbox.max.z() +0.5);
 
-    computeInsideOutCustom(tm, patches, octree, arr_verts, arr_in_tris, arr_in_labels, max_coords, labels, in_coords, data);
+    computeInsideOutCustom(tm, patches, octree, arr_verts, arr_in_tris, arr_in_labels, max_coords, labels, data);
 
 
 

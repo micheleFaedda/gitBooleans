@@ -7,7 +7,7 @@
 #include <cinolib/gl/glcanvas.h>
 #include <cinolib/gl/surface_mesh_controls.h>
 
-#include <mesh_booleans/booleans.h>
+#include <booleans.h>
 #include <arrangements/code/processing.h>
 
 
